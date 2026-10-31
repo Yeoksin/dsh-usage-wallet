@@ -23,7 +23,8 @@
     "install.ps1",
     "fix-bom.ps1",
     "screenshot-qwen.png",
-    "TROUBLESHOOTING.md"
+    "TROUBLESHOOTING.md",
+    "install-offline.bat"
   ],
   "exports": {
     ".": "./lib/index.js",

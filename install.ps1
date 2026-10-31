@@ -16,6 +16,7 @@
 
     powershell -ExecutionPolicy Bypass -File install.ps1
     powershell -ExecutionPolicy Bypass -File install.ps1 -TgzPath C:\path\to\pkg.tgz
+    powershell -ExecutionPolicy Bypass -File install.ps1 -Offline   # 同目录有 tgz 时用，不联网
 
   联网下载依次尝试 curl.exe（Win10 1803+ 自带）、TLS1.2 下的 Invoke-WebRequest、
   .NET HttpClient —— Windows PowerShell 5.1 的 IWR 常因 TLS/代理配置直接失败。
@@ -32,6 +33,7 @@
 [CmdletBinding()]
 param(
   [string]$TgzPath = '',
+  [switch]$Offline,
   [switch]$Force,
   [switch]$NoBundles
 )
@@ -82,6 +84,13 @@ New-Item -ItemType Directory -Path $tempRoot | Out-Null
 $tgz = Join-Path $tempRoot $AssetName
 
 try {
+  # 离线模式：优先用脚本同目录的 tgz（双击 install.bat 时走的就是这条路，完全不需要联网）
+  if ($Offline -and $TgzPath -eq '') {
+    $sibling = Join-Path $PSScriptRoot $AssetName
+    if (Test-Path $sibling) { $TgzPath = $sibling }
+    else { throw "离线模式：请把 $AssetName 和 install.ps1 放在同一个文件夹里再运行（当前查找 $sibling）。" }
+  }
+
   if ($TgzPath -ne '') {
     Write-Step "使用本地压缩包：$TgzPath"
     if (-not (Test-Path $TgzPath)) { throw "找不到文件：$TgzPath" }
@@ -174,12 +183,24 @@ try {
     Write-Ok "已备份：$backup"
 
     $json = Get-Content $profilePkg -Raw | ConvertFrom-Json
-    if ($null -eq $json.dsh -or $null -eq $json.dsh.profile -or $null -eq $json.dsh.profile.bundles) {
+    # StrictMode 下取不存在的属性会抛错，所以统一用「属性名列表 + 取索引」判断，不用 $obj.a.b.c。
+    $jsonNames = @($json.PSObject.Properties | Select-Object -ExpandProperty Name)
+    if ($jsonNames -notcontains 'dsh') {
+      throw "profile 的 package.json 里没有 dsh 段，无法自动改写；请手动把 `"$PackageName`" 加进 dsh.profile.bundles。"
+    }
+    $dshNode = $json.dsh
+    $dshNames = @($dshNode.PSObject.Properties | Select-Object -ExpandProperty Name)
+    if ($dshNames -notcontains 'profile') {
+      throw "profile 的 package.json 里没有 dsh.profile 段，请手动把 `"$PackageName`" 加进 dsh.profile.bundles。"
+    }
+    $profileNode = $dshNode.profile
+    $profileNames = @($profileNode.PSObject.Properties | Select-Object -ExpandProperty Name)
+    if ($profileNames -notcontains 'bundles') {
       throw "profile 的 package.json 里没有 dsh.profile.bundles，请手动把 `"$PackageName`" 加进 bundles。"
     }
 
     $bundles = [System.Collections.Generic.List[object]]::new()
-    foreach ($b in $json.dsh.profile.bundles) { $bundles.Add($b) }
+    foreach ($b in $profileNode.bundles) { $bundles.Add($b) }
     $hadOld = $bundles.Contains($OldPackageName)
     if ($hadOld) { [void]$bundles.Remove($OldPackageName) }
     if (-not $bundles.Contains($PackageName)) { $bundles.Add($PackageName) }
@@ -193,6 +214,11 @@ try {
       if ($depNames -contains $OldPackageName) {
         $json.dependencies.PSObject.Properties.Remove($OldPackageName)
       }
+      $json.dependencies | Add-Member -NotePropertyName $PackageName -NotePropertyValue "file:node_modules/$PackageName" -Force
+    }
+    else {
+      # 没有 dependencies 段时补一个（StrictMode 下不能直接对不存在的属性赋值）
+      $json | Add-Member -NotePropertyName 'dependencies' -NotePropertyValue ([pscustomobject]@{}) -Force
       $json.dependencies | Add-Member -NotePropertyName $PackageName -NotePropertyValue "file:node_modules/$PackageName" -Force
     }
 
@@ -213,7 +239,8 @@ try {
     if (-not $bom) {
       try {
         $check = [Text.Encoding]::UTF8.GetString($onDisk) | ConvertFrom-Json
-        $ok = $check.dsh.profile.bundles -contains $PackageName
+        $checkBundles = @($check.dsh.profile.PSObject.Properties['bundles'].Value)
+        $ok = ($checkBundles -contains $PackageName)
       } catch { $ok = $false }
     }
     if (-not $ok) {
