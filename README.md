@@ -11,30 +11,30 @@
 
 ## ⚠️ 装完不显示卡片 / 看不到 AccessKey 输入框？
 
-`v0.16.0-qwen.1` ~ `v0.16.0-qwen.6`（改名前） 有两处遗留问题：
+`v1.0.0` ~ `v1.0.5`（改名前） 有两处遗留问题：
 
-- 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**qwen.3 修复**）；
-- 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**qwen.4 修复**）。
+- 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**1.0.2 修复**）；
+- 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**1.0.3 修复**）。
 
-**升级到 `v1.0.0`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
+**升级到 `v1.0.11`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
 排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
-## ⚠️ 从 0.16.0-qwen.1 升级（重要）
+## ⚠️ 从 1.0.0 升级（重要）
 
-`0.16.0-qwen.1` 的 `install.ps1` 在 **Windows PowerShell 5.1** 下会把 profile 的 `package.json`
+`1.0.0` 的 `install.ps1` 在 **Windows PowerShell 5.1** 下会把 profile 的 `package.json`
 写成带 UTF-8 BOM 的文件，导致 DSH 启动时报：
 
 ```
 Unexpected token '﻿', "﻿{"... is not valid JSON
 ```
 
-**已经装过 qwen.1 的人**（DSH 打不开）：
+**已经装过 1.0.0 的人**（DSH 打不开）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
+powershell -ExecutionPolicy Bypass -File .\fix-bom.ps1
 ```
 
 或者点崩溃窗口里的「Disable third-party plugins, back up profile patch, and restart」先把 DSH 启动起来。
-`1.0.0` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
+自 `1.0.1` 起改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
 
 ## 这个分支解决了什么问题
 
@@ -107,7 +107,7 @@ git clone https://github.com/<你的用户名>/dsh-usage-wallet.git
 
 ```powershell
 $tgz = "$env:TEMP\wallet.tgz"
-Invoke-WebRequest "https://github.com/Yeoksin/dsh-usage-wallet/releases/latest/download/dsh-usage-wallet-1.0.0.tgz" -OutFile $tgz
+Invoke-WebRequest "https://github.com/Yeoksin/dsh-usage-wallet/releases/latest/download/dsh-usage-wallet-1.0.11.tgz" -OutFile $tgz
 $dst = "$env:TEMP\wallet"; Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
 tar -xzf $tgz -C $dst --strip-components=1
 Copy-Item "$dst\*" "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usage-wallet\" -Recurse -Force
@@ -117,7 +117,7 @@ Copy-Item "$dst\*" "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usag
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-usage-wallet-1.0.0.tgz
+npm pack                     # 产出 dsh-usage-wallet-1.0.11.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。

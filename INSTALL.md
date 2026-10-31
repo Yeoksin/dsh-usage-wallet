@@ -7,17 +7,17 @@
 
 ## 装完看不到卡片？先看这里
 
-- 插件详情页标题应是 `dsh-usage-wallet`、版本 `1.0.0`，「包含的组件」也是这个名字；
-  如果显示成 `@dougen/dsh-deepseek-usage` +「未运行」，说明你装的是 qwen.1 / qwen.2——重跑最新 `install.ps1`，再完全重启 DSH。
+- 插件详情页标题应是 `dsh-usage-wallet`、版本 `1.0.11`，「包含的组件」也是这个名字；
+  如果显示成 `@dougen/dsh-deepseek-usage` +「未运行」，说明你装的是 1.0.0 / 1.0.1——重跑最新 `install.ps1`，再完全重启 DSH。
 - 完整排查清单（含用命令确认 bundles 是否写入）见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## 已经装过旧版、DSH 打不开怎么办
 
-旧版安装脚本（`0.16.0-qwen.1`）在 Windows PowerShell 5.1 下会把 profile 的 `package.json` 写成带 BOM 的 UTF-8，
+旧版安装脚本（`1.0.0`）在 Windows PowerShell 5.1 下会把 profile 的 `package.json` 写成带 BOM 的 UTF-8，
 DSH 会报 `Unexpected token '﻿' ... is not valid JSON` 并打不开。**数据没丢**，按下面修：
 
 ```powershell
 # 方法一：用修复脚本（推荐）
-powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
+powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 
 # 方法二：手动去掉 BOM
 $p = "$env:USERPROFILE\.dsh\profiles\desktop\package.json"
@@ -48,10 +48,10 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 
 有些网络环境（公司代理 / 系统 TLS 配置）下 PowerShell 下载会被拒。这时：
 
-1. 手动下载 `dsh-usage-wallet-1.0.0.tgz`；
+1. 手动下载 `dsh-usage-wallet-1.0.11.tgz`；
 2. PowerShell 里执行：
    ```powershell
-   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-usage-wallet-1.0.0.tgz
+   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-usage-wallet-1.0.11.tgz
    ```
 
 ## 手动安装（三步）

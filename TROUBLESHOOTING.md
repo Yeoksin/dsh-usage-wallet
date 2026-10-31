@@ -2,11 +2,11 @@
 
 ## 症状：插件详情页里显示的是「@dougen/dsh-deepseek-usage」、状态「未运行」
 
-说明装的是 **v0.16.0-qwen.1 / qwen.2**：这两个版本的 `cordis.patch.yml` 沿用了上游写法，
+说明装的是 **v1.0.0 / 1.0.1**：这两个版本的 `cordis.patch.yml` 沿用了上游写法，
 把组件名写成了 `@dougen/dsh-deepseek-usage`（等于"顶着原版的名字"加载），DSH 会把它当成
 原版插件的别名，于是**不会作为独立插件运行**，侧边栏也就不出现卡片。
 
-**v1.0.0 已修复**：组件名改成本包自己的 `dsh-usage-wallet`。
+**1.0.2 已修复**：组件名改成本包自己的 `dsh-usage-wallet`。
 
 修复步骤：
 
@@ -16,16 +16,16 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `1.0.0`,
+重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `1.0.11`,
 「包含的组件」里是 `dsh-usage-wallet`（而不是 @dougen/...），状态「运行中」。
 
-## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（qwen.4 修复）
+## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（1.0.3 修复）
 
-`v0.16.0-qwen.3` 只改了宿主侧的注册名，浏览器端的 bundle 仍声明 `id: "@dougen/dsh-deepseek-usage"`，
+`v1.0.2` 只改了宿主侧的注册名，浏览器端的 bundle 仍声明 `id: "@dougen/dsh-deepseek-usage"`，
 而且详情页区块用一个 `pkg.name === "@dougen/dsh-deepseek-usage"` 的判断决定是否渲染。
 注册名换掉之后这个判断永远不成立，于是**AccessKey 输入框和「余额与用量查询状态」区块都不显示**。
 
-`1.0.0` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
+`1.0.3` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -63,7 +63,7 @@ Get-Content "$env:USERPROFILE\.dsh\profiles\desktop\package.json" -Raw | Convert
 
 ## 症状：DSH 打不开，报 `Unexpected token '\uFEFF' ... is not valid JSON`
 
-这是 **qwen.1 / qwen.2 安装脚本的 bug**（Windows PowerShell 5.1 的 `Set-Content -Encoding UTF8`
+这是 **1.0.0 / 1.0.1 安装脚本的 bug**（Windows PowerShell 5.1 的 `Set-Content -Encoding UTF8`
 会写入 BOM，Node 的 JSON.parse 不认）。数据不会丢。
 
 ```powershell
