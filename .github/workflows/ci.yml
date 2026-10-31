@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # DSH 的 Node 基线：22 是较老的 DSH 0.2.x 宿主，24 是桌面版随附的版本。
+      # 插件没有构建步骤，这里直接跑 lib/*.js，版本差异会在测试里暴露。
+      matrix:
+        node-version:
+          - 22
+          - 24
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # 测试从 node_modules 解析 DSH 的 peer 依赖（@deepseek-ai/dsh-credentials 等）。
+      - name: Install peer dependencies
+        run: npm install --no-audit --no-fund --omit=dev --legacy-peer-deps || true
+
+      - name: Run tests
+        run: npm test

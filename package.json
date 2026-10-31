@@ -1,0 +1,60 @@
+{
+  "name": "dsh-deepseek-usage-qwen",
+  "version": "0.16.0-qwen.1",
+  "description": "Fork of @dougen/dsh-deepseek-usage: the active provider's balance or subscription usage — now also Alibaba Cloud voucher balance for the qwen-token-plan route (Aliyun BSS OpenAPI with an AccessKey ID/Secret) — plus per-token unit prices, a provider query-status page, and Chinese/English UI.",
+  "type": "module",
+  "main": "lib/index.js",
+  "icon": "./icon.svg",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "upstream:sync": "node scripts/sync-upstream.mjs"
+  },
+  "files": [
+    "lib",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "INSTALL.md",
+    "LICENSE",
+    "NOTICE.md",
+    "screenshot.png",
+    "screenshots.json"
+  ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-credentials": "^0.1.0-rc.6 || ^0.2.0-rc.1 || ^0.2.1-rc.2",
+    "@deepseek-ai/dsh-host-webserver": "^0.1.0-rc.6 || ^0.2.0-rc.1 || ^0.2.1-rc.2"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek",
+    "deepseek-harness",
+    "plugin",
+    "usage",
+    "balance",
+    "quota",
+    "oauth",
+    "tokens",
+    "web",
+    "qwen",
+    "qwen-token-plan",
+    "aliyun",
+    "bailian",
+    "voucher"
+  ],
+  "license": "MIT",
+  "private": true,
+  "author": "fork by the repository owner; original plugin by dougen (MIT)"
+}
