@@ -25,7 +25,7 @@ function makeBssFetch(handler) {
 }
 
 /** 一个最小可用的插件宿主替身。 */
-function makeCtx() {
+function makeCtx({ currentProvider = 'qwen-token-plan' } = {}) {
   const routes = new Map();
   const store = new Map();
   const ctx = {
@@ -45,7 +45,7 @@ function makeCtx() {
     },
     get(name) {
       if (name !== 'agentDefaultModel') return undefined;
-      return { currentSelection: () => ({ provider: 'qwen-token-plan', model: 'deepseek-v4.1-flash' }) };
+      return { currentSelection: () => ({ provider: currentProvider, model: 'deepseek-v4.1-flash' }) };
     },
   };
   apply(ctx);
@@ -271,4 +271,21 @@ test('Request 形态的请求体（IPC 桥/测试替身）也能解析', async (
   });
   assert.equal(result.status, 200, JSON.stringify(result.body));
   assert.equal(result.body.configured, true);
+});
+test('当前 provider 是别名（xiaomi）时：主卡片认作余额类，且状态页只有一张 MiMo 卡', async () => {
+  const { routes } = makeCtx({ currentProvider: 'xiaomi' });
+  const server = await startServer(routes);
+  try {
+    const main = await json(await fetch(`${server.base}/api/deepseek-usage?lang=zh`));
+    assert.equal(main.body.provider.id, 'xiaomi');
+    assert.equal(main.body.provider.kind, 'balance', '别名应解析到 MiMo 的余额能力');
+
+    const list = await json(await fetch(`${server.base}/api/deepseek-usage/accounts?list=1`));
+    const mimoCards = list.body.accounts.filter((a) => a.multi === 'mimo-cookie');
+    assert.equal(mimoCards.length, 1, '只应有一张 MiMo Cookie 卡：' + mimoCards.map((a) => a.id).join(','));
+    assert.equal(mimoCards[0].id, 'xiaomi', '保留的是当前 provider 那一行');
+    assert.equal(mimoCards[0].current, true);
+  } finally {
+    await server.close();
+  }
 });

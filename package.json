@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepseek-usage-qwen",
-  "version": "0.16.0-qwen.5",
+  "version": "0.16.0-qwen.6",
   "description": "Fork of @dougen/dsh-deepseek-usage: the active provider's balance or subscription usage — plus Alibaba Cloud voucher balance for qwen-token-plan (BSS OpenAPI + AccessKey) and Xiaomi MiMo console balance (cookie) — per-token unit prices, a provider query-status page, and Chinese/English UI.",
   "type": "module",
   "main": "lib/index.js",

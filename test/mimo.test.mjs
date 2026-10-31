@@ -10,7 +10,7 @@ import {
   parseMiMoTokenPlanUsage,
   readMiMoAccount,
 } from '../lib/mimo.js';
-import { accountCapabilityOf, providerCookieOf, candidateRefsOf } from '../lib/accounts.js';
+import { accountCapabilityOf, providerCookieOf, candidateRefsOf, canonicalProviderId, supportedProviderIds } from '../lib/accounts.js';
 
 const VALID = 'api-platform_serviceToken=eyJhbGciOi.abc; userId=2451887661; api-platform_ph=xyz';
 
@@ -148,4 +148,17 @@ test('能力表：mimo / xiaomimimo 是 Cookie 类余额提供商', () => {
   }
   assert.equal(providerCookieOf('qwen-token-plan'), null);
   assert.equal(providerCookieOf('deepseek'), null);
+});
+test('别名：xiaomi / xiaomimimo 归一到一个能力，且只列一次', () => {
+  for (const id of ['xiaomi', 'xiaomimimo', 'xiaomi-mimo']) {
+    assert.equal(canonicalProviderId(id), 'mimo', `${id} 应归一到 mimo`);
+    const entry = accountCapabilityOf(id);
+    assert.ok(entry, `${id} 应能解析到能力`);
+    assert.equal(entry.kind, 'balance');
+    assert.ok(providerCookieOf(id), `${id} 应能走 Cookie 路径`);
+    assert.deepEqual(candidateRefsOf(id), ['MIMO_COOKIE']);
+  }
+  const ids = supportedProviderIds();
+  assert.equal(ids.filter((id) => id === 'mimo').length, 1);
+  assert.equal(ids.includes('xiaomimimo'), false, '别名不该单独出现在能力列表里');
 });

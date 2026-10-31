@@ -6,7 +6,7 @@
 把组件名写成了 `@dougen/dsh-deepseek-usage`（等于"顶着原版的名字"加载），DSH 会把它当成
 原版插件的别名，于是**不会作为独立插件运行**，侧边栏也就不出现卡片。
 
-**v0.16.0-qwen.5 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
+**v0.16.0-qwen.6 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
 
 修复步骤：
 
@@ -16,7 +16,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.5`,
+重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.6`,
 「包含的组件」里是 `dsh-deepseek-usage-qwen`（而不是 @dougen/...），状态「运行中」。
 
 ## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（qwen.4 修复）
@@ -25,7 +25,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 而且详情页区块用一个 `pkg.name === "@dougen/dsh-deepseek-usage"` 的判断决定是否渲染。
 注册名换掉之后这个判断永远不成立，于是**AccessKey 输入框和「余额与用量查询状态」区块都不显示**。
 
-`0.16.0-qwen.5` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
+`0.16.0-qwen.6` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
