@@ -66,14 +66,16 @@ $bundles = @()
 if ($json.PSObject.Properties.Name -contains 'dsh' -and $json.dsh -and $json.dsh.profile -and $json.dsh.profile.bundles) {
   $bundles = @($json.dsh.profile.bundles)
 }
-$hasOld = $bundles -contains '@dougen/dsh-deepseek-usage'
 $hasNew = $bundles -contains 'dsh-usage-wallet'
-if ($hasOld -and $hasNew) {
-  Write-Err2 'bundles 里同时有原版和本分支，二者路由冲突，请二选一（建议保留 dsh-usage-wallet）。'
+$legacy = @($bundles | Where-Object { $_ -eq '@dougen/dsh-deepseek-usage' -or $_ -eq 'dsh-deepseek-usage-qwen' })
+if ($hasNew -and $legacy.Count -gt 0) {
+  Write-Err2 ('bundles 里同时有 dsh-usage-wallet 和旧条目（' + ($legacy -join ', ') + '），二者注册同一批路由，请只保留 dsh-usage-wallet。')
 } elseif ($hasNew) {
   Write-Ok 'bundles 里已启用 dsh-usage-wallet'
-} elseif ($hasOld) {
-  Write-Info 'bundles 里是原版插件（未启用本分支）'
+} elseif ($legacy.Count -gt 0) {
+  Write-Info ('bundles 里是旧版本（' + ($legacy -join ', ') + '）；运行最新 install.ps1 会自动迁移到 dsh-usage-wallet')
+} else {
+  Write-Info 'bundles 里没有本插件（需要时运行 install.ps1）'
 }
 
 Write-Host "`n现在可以重新打开 DeepSeek Harness 了。`n" -ForegroundColor Cyan
