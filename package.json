@@ -1,6 +1,6 @@
 {
   "name": "dsh-usage-wallet",
-  "version": "0.17.2",
+  "version": "0.17.3",
   "description": "DSH sidebar widget that shows the active provider's balance or subscription usage — Alibaba Cloud voucher balance (BSS OpenAPI + AccessKey), Xiaomi MiMo console balance and token-plan usage, plus DeepSeek/Moonshot/Z.ai/OpenRouter balances and Kimi/MiniMax/OpenCode quotas — with per-token unit prices, a provider query-status page, and Chinese/English UI.",
   "type": "module",
   "main": "lib/index.js",

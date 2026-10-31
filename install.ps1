@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  DSH 插件安装脚本：dsh-usage-wallet（侧边栏显示阿里云代金券余额）。
+  DSH 插件安装脚本：dsh-usage-wallet（通用余额 / 用量侧边栏：阿里云代金券、小米 MiMo、DeepSeek 等）。
 
 .DESCRIPTION
   把 dsh-usage-wallet 装进 DSH 的 profile 插件目录，并把包名写进
@@ -42,7 +42,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $PackageName    = 'dsh-usage-wallet'
-$PackageVersion = '0.17.2'
+$PackageVersion = '0.17.3'
 # 需要从 bundles 里清理的旧名字（上游原版 + 本插件之前的包名），避免两个插件抢同一批路由/槽位
 $LegacyPackageNames = @('@dougen/dsh-deepseek-usage', 'dsh-deepseek-usage-qwen')
 $Repo           = 'Yeoksin/dsh-usage-wallet'
