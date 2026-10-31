@@ -6,7 +6,7 @@
 把组件名写成了 `@dougen/dsh-deepseek-usage`（等于"顶着原版的名字"加载），DSH 会把它当成
 原版插件的别名，于是**不会作为独立插件运行**，侧边栏也就不出现卡片。
 
-**v0.16.0-qwen.7 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
+**v0.16.0-qwen.7 已修复**：组件名改成本包自己的 `dsh-usage-wallet`。
 
 修复步骤：
 
@@ -16,8 +16,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.7`,
-「包含的组件」里是 `dsh-deepseek-usage-qwen`（而不是 @dougen/...），状态「运行中」。
+重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `0.16.0-qwen.7`,
+「包含的组件」里是 `dsh-usage-wallet`（而不是 @dougen/...），状态「运行中」。
 
 ## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（qwen.4 修复）
 
@@ -59,7 +59,7 @@ Get-Content "$env:USERPROFILE\.dsh\profiles\desktop\package.json" -Raw | Convert
   Select-Object -ExpandProperty bundles
 ```
 
-应该能看到 `dsh-deepseek-usage-qwen`，并且**没有** `@dougen/dsh-deepseek-usage`。
+应该能看到 `dsh-usage-wallet`，并且**没有** `@dougen/dsh-deepseek-usage`。
 
 ## 症状：DSH 打不开，报 `Unexpected token '\uFEFF' ... is not valid JSON`
 
@@ -104,8 +104,8 @@ AccessKey 与权限都正常，只是这个账号当前没有可用代金券（�
 ## 卸载 / 回退到原版
 
 ```powershell
-# 从 bundles 里移除 dsh-deepseek-usage-qwen，删目录，重启 DSH
-Remove-Item "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-deepseek-usage-qwen" -Recurse
+# 从 bundles 里移除 dsh-usage-wallet，删目录，重启 DSH
+Remove-Item "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usage-wallet" -Recurse
 # 想用回原版：把 @dougen/dsh-deepseek-usage 重新加进 bundles，并 npm install 原版
 ```
 

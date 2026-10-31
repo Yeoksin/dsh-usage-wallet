@@ -1,11 +1,11 @@
 @echo off
-rem DSH plugin installer: dsh-deepseek-usage-qwen
+rem DSH plugin installer: dsh-usage-wallet
 rem Double-click this file, or run it from cmd. It just calls install.ps1 beside it.
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
 
-echo Installing dsh-deepseek-usage-qwen for DeepSeek Harness...
+echo Installing dsh-usage-wallet for DeepSeek Harness...
 echo.
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" %*

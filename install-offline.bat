@@ -1,6 +1,6 @@
 @echo off
 rem ============================================================
-rem  DSH plugin: dsh-deepseek-usage-qwen - OFFLINE installer
+rem  DSH plugin: dsh-usage-wallet - OFFLINE installer
 rem
 rem  Usage:
 rem    1. Put this file, install.ps1 and the .tgz in ONE folder
@@ -20,7 +20,7 @@ if not exist "%PS1%" (
   exit /b 1
 )
 
-echo Installing dsh-deepseek-usage-qwen (offline mode)...
+echo Installing dsh-usage-wallet (offline mode)...
 echo.
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -Offline %*

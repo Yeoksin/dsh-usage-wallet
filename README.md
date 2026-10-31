@@ -1,4 +1,4 @@
-# dsh-deepseek-usage-qwen
+# dsh-usage-wallet
 
 给 **DeepSeek Harness（DSH）Web UI** 用的侧边栏插件（[`dougen/dsh-deepseek-usage`](https://github.com/dougen/dsh-deepseek-usage) 的非官方分支）。
 
@@ -16,7 +16,7 @@
 - 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**qwen.3 修复**）；
 - 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**qwen.4 修复**）。
 
-**升级到 `v0.16.0-qwen.7`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-deepseek-usage-qwen`；然后完全重启 DSH。
+**升级到 `v0.16.0-qwen.7`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
 排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## ⚠️ 从 0.16.0-qwen.1 升级（重要）
 
@@ -74,7 +74,7 @@ MiMo 开放平台和阿里云一样，**推理 Key 查不到余额**：
 > Cookie 会随登录过期。过期后插件会提示「小米 MiMo 登录状态已过期」，重新登录并复制一次即可。注意别把 Cookie 发给别人——它等同于你的控制台登录凭证。
 ## 安装
 
-**一键安装（Windows，推荐）**：到 [Releases](https://github.com/Yeoksin/dsh-deepseek-usage-qwen/releases/latest) 下载 `install.bat` 和 `install.ps1`，放在同一目录双击 `install.bat`，然后完全重启 DSH。脚本会自动下载、解压、并改好 `dsh.profile.bundles`。
+**一键安装（Windows，推荐）**：到 [Releases](https://github.com/Yeoksin/dsh-usage-wallet/releases/latest) 下载 `install.bat` 和 `install.ps1`，放在同一目录双击 `install.bat`，然后完全重启 DSH。脚本会自动下载、解压、并改好 `dsh.profile.bundles`。
 
 详细步骤（含手动安装、卸载、网络不通时的离线参数）见 [INSTALL.md](./INSTALL.md)。
 
@@ -84,19 +84,19 @@ DSH 的插件目录是 `~/.dsh/profiles/desktop/node_modules/`。任选一种：
 
 ```bash
 cd ~/.dsh/profiles/desktop/node_modules
-git clone https://github.com/<你的用户名>/dsh-deepseek-usage-qwen.git
+git clone https://github.com/<你的用户名>/dsh-usage-wallet.git
 ```
 
-然后在 `~/.dsh/profiles/desktop/package.json` 的 `dependencies` 里加一行（或直接写 `"file:./node_modules/dsh-deepseek-usage-qwen"`）：
+然后在 `~/.dsh/profiles/desktop/package.json` 的 `dependencies` 里加一行（或直接写 `"file:./node_modules/dsh-usage-wallet"`）：
 
 ```json
-"dsh-deepseek-usage-qwen": "file:node_modules/dsh-deepseek-usage-qwen"
+"dsh-usage-wallet": "file:node_modules/dsh-usage-wallet"
 ```
 
 并把包名加进 `dsh.profile.bundles` 数组末尾：
 
 ```json
-"bundles": [ "…", "@dougen/dsh-deepseek-usage"  →  改成 "dsh-deepseek-usage-qwen" ]
+"bundles": [ "…", "@dougen/dsh-deepseek-usage"  →  改成 "dsh-usage-wallet" ]
 ```
 
 > ⚠️ **不要同时启用原版和本分支**：两者注册相同的路由（`/api/deepseek-usage`）与侧边栏槽位，会冲突。启用本分支前，先把原版 `@dougen/dsh-deepseek-usage` 从 `bundles` 里去掉。
@@ -105,7 +105,7 @@ git clone https://github.com/<你的用户名>/dsh-deepseek-usage-qwen.git
 
 ```bash
 cd ~/.dsh/profiles/desktop/node_modules/@dougen/dsh-deepseek-usage
-cp -r /path/to/dsh-deepseek-usage-qwen/lib/* lib/     # 覆盖 3 个文件 + 新增 aliyun.js
+cp -r /path/to/dsh-usage-wallet/lib/* lib/     # 覆盖 3 个文件 + 新增 aliyun.js
 ```
 
 等价于原版包原地升级，`package.json` 里的条目不用改。
@@ -113,7 +113,7 @@ cp -r /path/to/dsh-deepseek-usage-qwen/lib/* lib/     # 覆盖 3 个文件 + 新
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.7.tgz
+npm pack                     # 产出 dsh-usage-wallet-0.16.0-qwen.7.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。

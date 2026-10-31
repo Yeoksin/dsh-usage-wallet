@@ -7,7 +7,7 @@
 
 ## 装完看不到卡片？先看这里
 
-- 插件详情页标题应是 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.7`，「包含的组件」也是这个名字；
+- 插件详情页标题应是 `dsh-usage-wallet`、版本 `0.16.0-qwen.7`，「包含的组件」也是这个名字；
   如果显示成 `@dougen/dsh-deepseek-usage` +「未运行」，说明你装的是 qwen.1 / qwen.2——重跑最新 `install.ps1`，再完全重启 DSH。
 - 完整排查清单（含用命令确认 bundles 是否写入）见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## 已经装过旧版、DSH 打不开怎么办
@@ -29,7 +29,7 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 
 ## 一键安装（推荐）
 
-1. 打开 <https://github.com/Yeoksin/dsh-deepseek-usage-qwen/releases/latest>；
+1. 打开 <https://github.com/Yeoksin/dsh-usage-wallet/releases/latest>；
 2. 把 **`install.bat` 和 `install.ps1` 下载到同一个文件夹**（如果浏览器没自动加后缀，改名为 `install.bat` / `install.ps1`）；
 3. **双击 `install.bat`**（或右键 → 以 PowerShell 运行 `install.ps1`）；
 4. 看到 `==> 完成` 就好了，然后**完全退出 DSH（托盘也要退出）再打开**。
@@ -37,8 +37,8 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 脚本会自动：
 
 - 下载压缩包并核对 SHA-256；
-- 解压到 `%USERPROFILE%\.dsh\profiles\desktop\node_modules\dsh-deepseek-usage-qwen`；
-- 备份并修改 `profiles\desktop\package.json`：把 `dsh-deepseek-usage-qwen` 加进 `dsh.profile.bundles`，并移除会冲突的原版 `@dougen/dsh-deepseek-usage`；
+- 解压到 `%USERPROFILE%\.dsh\profiles\desktop\node_modules\dsh-usage-wallet`；
+- 备份并修改 `profiles\desktop\package.json`：把 `dsh-usage-wallet` 加进 `dsh.profile.bundles`，并移除会冲突的原版 `@dougen/dsh-deepseek-usage`；
 - 可重复运行（等于就地升级）。
 
 > 如果双击被执行策略拦住：右键 `install.bat` → **以管理员身份运行**，或在 PowerShell 里执行
@@ -48,19 +48,19 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 
 有些网络环境（公司代理 / 系统 TLS 配置）下 PowerShell 下载会被拒。这时：
 
-1. 手动下载 `dsh-deepseek-usage-qwen-0.16.0-qwen.7.tgz`；
+1. 手动下载 `dsh-usage-wallet-0.16.0-qwen.7.tgz`；
 2. PowerShell 里执行：
    ```powershell
-   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-deepseek-usage-qwen-0.16.0-qwen.7.tgz
+   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-usage-wallet-0.16.0-qwen.7.tgz
    ```
 
 ## 手动安装（三步）
 
 1. **把文件放进插件目录**：解压 tgz，把里面的 `package/` 内容放到
-   `C:\Users\<你>\.dsh\profiles\desktop\node_modules\dsh-deepseek-usage-qwen\`
+   `C:\Users\<你>\.dsh\profiles\desktop\node_modules\dsh-usage-wallet\`
    （该目录下应有 `package.json`、`lib/`）；
 2. **让 DSH 加载它**：编辑 `C:\Users\<你>\.dsh\profiles\desktop\package.json`，
-   在 `dsh.profile.bundles` 数组里**去掉** `@dougen/dsh-deepseek-usage`、**加上** `dsh-deepseek-usage-qwen`；
+   在 `dsh.profile.bundles` 数组里**去掉** `@dougen/dsh-deepseek-usage`、**加上** `dsh-usage-wallet`；
 3. **完全重启 DSH**。
 
 ## 配置：小米 MiMo（可选）
@@ -78,7 +78,7 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 2. 建议新建 **RAM 子用户**（勾选「使用永久 AccessKey 访问」），复制 **AccessKey ID / Secret**；
 3. 给这个用户授权系统策略 **`AliyunBSSReadOnlyAccess`**，**资源范围选「账号级别」**
    （别选成名字很像的 `AliyunSLBReadOnlyAccess`，那是负载均衡）；
-4. DSH → 设置 → 插件 → `dsh-deepseek-usage-qwen` → 详情页底部
+4. DSH → 设置 → 插件 → `dsh-usage-wallet` → 详情页底部
    「阿里云 AccessKey（查代金券余额）」→ 填 ID 和 Secret → 保存。
 
 保存后会立刻自检：成功显示 `已保存 · ¥金额`，失败会写清原因（ID 不存在 / Secret 不对 / 缺只读权限）。
@@ -88,9 +88,9 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 ## 卸载
 
 ```powershell
-# 1) 从 profile 的 package.json 的 dsh.profile.bundles 里删掉 dsh-deepseek-usage-qwen
+# 1) 从 profile 的 package.json 的 dsh.profile.bundles 里删掉 dsh-usage-wallet
 # 2) 删目录
-Remove-Item "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-deepseek-usage-qwen" -Recurse
+Remove-Item "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usage-wallet" -Recurse
 # 3) 重启 DSH；想恢复原版就把 @dougen/dsh-deepseek-usage 加回 bundles
 ```
 

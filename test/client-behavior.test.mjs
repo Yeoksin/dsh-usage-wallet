@@ -535,7 +535,7 @@ test('状态表：不支持的提供商显示"不适用"而非红色"查询失�
       errors: [],
     }),
   });
-  const el = Section({ t: (k) => k, subject: { kind: 'bundle', pkg: { name: 'dsh-deepseek-usage-qwen' } } });
+  const el = Section({ t: (k) => k, subject: { kind: 'bundle', pkg: { name: 'dsh-usage-wallet' } } });
   runtime.render(() => el.type(el.props));
   await flush();
   const { out } = runtime.render(() => el.type(el.props));
@@ -573,7 +573,7 @@ test('状态表只出现在本插件的详情页', async () => {
   );
   // 行页面与官方插件页面同理。
   assert.equal(
-    Section({ t, subject: { kind: 'row', pkg: { name: 'dsh-deepseek-usage-qwen' }, row: { rowId: 'x' } } }),
+    Section({ t, subject: { kind: 'row', pkg: { name: 'dsh-usage-wallet' }, row: { rowId: 'x' } } }),
     null,
     '行页面不是 bundle 页面',
   );
@@ -583,7 +583,7 @@ test('状态表只出现在本插件的详情页', async () => {
 
   // 本插件的 bundle 页面：渲染一块 section（注册返回的是组件元素，
   // 真正的 <section> 在组件返回值里）。
-  const own = Section({ t, subject: { kind: 'bundle', pkg: { name: 'dsh-deepseek-usage-qwen' } } });
+  const own = Section({ t, subject: { kind: 'bundle', pkg: { name: 'dsh-usage-wallet' } } });
   assert.notEqual(own, null);
   const rendered = runtime.render(() => own.type(own.props));
   assert.equal(rendered.out.type, 'section');

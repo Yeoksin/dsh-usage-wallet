@@ -1,9 +1,9 @@
 ﻿<#
 .SYNOPSIS
-  DSH 插件安装脚本：dsh-deepseek-usage-qwen（侧边栏显示阿里云代金券余额）。
+  DSH 插件安装脚本：dsh-usage-wallet（侧边栏显示阿里云代金券余额）。
 
 .DESCRIPTION
-  把 dsh-deepseek-usage-qwen 装进 DSH 的 profile 插件目录，并把包名写进
+  把 dsh-usage-wallet 装进 DSH 的 profile 插件目录，并把包名写进
   dsh.profile.bundles（自动移除会冲突的原版 @dougen/dsh-deepseek-usage）。
   可重复执行：已装过会就地升级。
 
@@ -41,10 +41,11 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$PackageName    = 'dsh-deepseek-usage-qwen'
-$PackageVersion = '0.16.0-qwen.7'
-$OldPackageName = '@dougen/dsh-deepseek-usage'
-$Repo           = 'Yeoksin/dsh-deepseek-usage-qwen'
+$PackageName    = 'dsh-usage-wallet'
+$PackageVersion = '0.17.0'
+# 需要从 bundles 里清理的旧名字（上游原版 + 本插件之前的包名），避免两个插件抢同一批路由/槽位
+$LegacyPackageNames = @('@dougen/dsh-deepseek-usage', 'dsh-deepseek-usage-qwen')
+$Repo           = 'Yeoksin/dsh-usage-wallet'
 $AssetName      = "$PackageName-$PackageVersion.tgz"
 $AssetUrl       = "https://github.com/$Repo/releases/download/v$PackageVersion/$AssetName"
 $ShaUrl         = "https://github.com/$Repo/releases/download/v$PackageVersion/assets.sha256"
@@ -166,6 +167,13 @@ try {
   if (-not (Test-Path (Join-Path $staged 'package.json'))) { throw '压缩包结构异常：找不到 package/package.json' }
 
   if (-not (Test-Path $nodeModules)) { New-Item -ItemType Directory -Path $nodeModules -Force | Out-Null }
+  foreach ($legacy in $LegacyPackageNames) {
+    $legacyDir = Join-Path $nodeModules $legacy
+    if (Test-Path $legacyDir) {
+      Write-Warn2 "移除旧版本目录：$legacyDir"
+      Remove-Item $legacyDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  }
   $target = Join-Path $nodeModules $PackageName
   if (Test-Path $target) {
     Write-Warn2 "移除旧版本：$target"
@@ -201,8 +209,11 @@ try {
 
     $bundles = [System.Collections.Generic.List[object]]::new()
     foreach ($b in $profileNode.bundles) { $bundles.Add($b) }
-    $hadOld = $bundles.Contains($OldPackageName)
-    if ($hadOld) { [void]$bundles.Remove($OldPackageName) }
+    $removed = @()
+    foreach ($legacy in $LegacyPackageNames) {
+      if ($bundles.Contains($legacy)) { [void]$bundles.Remove($legacy); $removed += $legacy }
+    }
+    $hadOld = $removed.Count -gt 0
     if (-not $bundles.Contains($PackageName)) { $bundles.Add($PackageName) }
     $json.dsh.profile.bundles = [object[]]$bundles.ToArray()
 
@@ -211,8 +222,8 @@ try {
       # `$obj.PSObject.Properties.Name` 会抛「在此对象上找不到与参数名称 Name 匹配的属性」，
       # 所以整体用 @() 包一层再比较。
       $depNames = @($json.dependencies.PSObject.Properties | Select-Object -ExpandProperty Name)
-      if ($depNames -contains $OldPackageName) {
-        $json.dependencies.PSObject.Properties.Remove($OldPackageName)
+      foreach ($legacy in $LegacyPackageNames) {
+        if ($depNames -contains $legacy) { $json.dependencies.PSObject.Properties.Remove($legacy) }
       }
       $json.dependencies | Add-Member -NotePropertyName $PackageName -NotePropertyValue "file:node_modules/$PackageName" -Force
     }
@@ -247,7 +258,7 @@ try {
       Copy-Item $backup $profilePkg -Force
       throw "写入后自检失败（BOM=$bom），已自动还原备份 $backup 。请把上面这段输出发给维护者。"
     }
-    if ($hadOld) { Write-Ok "已从 bundles 移除原版 $OldPackageName" }
+    if ($hadOld) { Write-Ok ("已从 bundles 移除旧条目：" + ($removed -join ', ')) }
     Write-Ok "已把 $PackageName 加入 bundles（UTF-8 无 BOM，可解析自检通过）"
   }
 }
