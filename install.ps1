@@ -7,6 +7,11 @@
   dsh.profile.bundles（自动移除会冲突的原版 @dougen/dsh-deepseek-usage）。
   可重复执行：已装过会就地升级。
 
+  0.16.0-qwen.2 修了 qwen.1 的一个致命 bug：旧版在 Windows PowerShell 5.1 下用
+  `Set-Content -Encoding UTF8` 改写 profile 的 package.json 会写入 BOM，导致 DSH
+  启动时报 "Unexpected token '﻿' ... is not valid JSON"。现在改为字节级写入
+  UTF-8（无 BOM），并在落盘后自检，失败自动回滚备份。
+
   推荐用法（双击 install.bat 也行，它只是调用本脚本）：
 
     powershell -ExecutionPolicy Bypass -File install.ps1
@@ -35,7 +40,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $PackageName    = 'dsh-deepseek-usage-qwen'
-$PackageVersion = '0.16.0-qwen.1'
+$PackageVersion = '0.16.0-qwen.2'
 $OldPackageName = '@dougen/dsh-deepseek-usage'
 $Repo           = 'Yeoksin/dsh-deepseek-usage-qwen'
 $AssetName      = "$PackageName-$PackageVersion.tgz"
@@ -187,12 +192,32 @@ try {
       $json.dependencies | Add-Member -NotePropertyName $PackageName -NotePropertyValue "file:node_modules/$PackageName" -Force
     }
 
-    ($json | ConvertTo-Json -Depth 32) | Set-Content -Path $profilePkg -Encoding UTF8
-
-    $check = Get-Content $profilePkg -Raw | ConvertFrom-Json
-    if (-not ($check.dsh.profile.bundles -contains $PackageName)) { throw "自检失败：bundles 里没有新包，原文件已备份在 $backup" }
+    # 关键：必须写「UTF-8 无 BOM」。Windows PowerShell 5.1 的 `Set-Content -Encoding UTF8`
+    # 会加 BOM（EF BB BF），Node 的 JSON.parse 不认，DSH 启动时读 profile 清单直接崩——
+    # 这是 0.16.0-qwen.1 的 bug，这里改成字节级写入 + 落盘前自检 + 失败自动回滚。
+    $text = $json | ConvertTo-Json -Depth 32
+    # 1) 先在内存里验证：能解析、bundles 里有新包
+    try { $null = $text | ConvertFrom-Json } catch { throw "生成的 JSON 无法解析，已放弃写入（原文件未改动）：$($_.Exception.Message)" }
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    $bytes = $utf8NoBom.GetBytes($text)
+    # 2) 落盘
+    [IO.File]::WriteAllBytes($profilePkg, $bytes)
+    # 3) 落盘后自检：无 BOM、可解析、条目正确；任何一项不满足就回滚到备份
+    $onDisk = [IO.File]::ReadAllBytes($profilePkg)
+    $bom = $onDisk.Length -ge 3 -and $onDisk[0] -eq 0xEF -and $onDisk[1] -eq 0xBB -and $onDisk[2] -eq 0xBF
+    $ok = $false
+    if (-not $bom) {
+      try {
+        $check = [Text.Encoding]::UTF8.GetString($onDisk) | ConvertFrom-Json
+        $ok = $check.dsh.profile.bundles -contains $PackageName
+      } catch { $ok = $false }
+    }
+    if (-not $ok) {
+      Copy-Item $backup $profilePkg -Force
+      throw "写入后自检失败（BOM=$bom），已自动还原备份 $backup 。请把上面这段输出发给维护者。"
+    }
     if ($hadOld) { Write-Ok "已从 bundles 移除原版 $OldPackageName" }
-    Write-Ok "已把 $PackageName 加入 bundles"
+    Write-Ok "已把 $PackageName 加入 bundles（UTF-8 无 BOM，可解析自检通过）"
   }
 }
 catch {

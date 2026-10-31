@@ -4,7 +4,25 @@
 
 除了原版全部能力，**新增：当前路由是 `qwen-token-plan`（阿里云百炼 / Qwen Token Plan）时，显示你阿里云账户的「代金券余额」**。
 
-![用量卡片](screenshot.png)
+![用量卡片：阿里云代金券余额](screenshot-qwen.png)
+
+## ⚠️ 从 0.16.0-qwen.1 升级（重要）
+
+`0.16.0-qwen.1` 的 `install.ps1` 在 **Windows PowerShell 5.1** 下会把 profile 的 `package.json`
+写成带 UTF-8 BOM 的文件，导致 DSH 启动时报：
+
+```
+Unexpected token '﻿', "﻿{"... is not valid JSON
+```
+
+**已经装过 qwen.1 的人**（DSH 打不开）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
+```
+
+或者点崩溃窗口里的「Disable third-party plugins, back up profile patch, and restart」先把 DSH 启动起来。
+`0.16.0-qwen.2` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
 
 ## 这个分支解决了什么问题
 
@@ -59,7 +77,7 @@ cp -r /path/to/dsh-deepseek-usage-qwen/lib/* lib/     # 覆盖 3 个文件 + 新
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.1.tgz
+npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.2.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。

@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepseek-usage-qwen",
-  "version": "0.16.0-qwen.1",
+  "version": "0.16.0-qwen.2",
   "description": "Fork of @dougen/dsh-deepseek-usage: the active provider's balance or subscription usage — now also Alibaba Cloud voucher balance for the qwen-token-plan route (Aliyun BSS OpenAPI with an AccessKey ID/Secret) — plus per-token unit prices, a provider query-status page, and Chinese/English UI.",
   "type": "module",
   "main": "lib/index.js",
@@ -20,7 +20,9 @@
     "screenshot.png",
     "screenshots.json",
     "install.bat",
-    "install.ps1"
+    "install.ps1",
+    "fix-bom.ps1",
+    "screenshot-qwen.png"
   ],
   "exports": {
     ".": "./lib/index.js",

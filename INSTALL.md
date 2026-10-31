@@ -5,6 +5,23 @@
 - 已装 **DeepSeek Harness 桌面版**（Windows 10 1803 及以上），且模型接的是 `qwen-token-plan`（阿里云百炼）；
 - 有一对**阿里云 AccessKey**（免费；RAM 子账号 + `AliyunBSSReadOnlyAccess` 只读权限最安全）。
 
+## 已经装过旧版、DSH 打不开怎么办
+
+旧版安装脚本（`0.16.0-qwen.1`）在 Windows PowerShell 5.1 下会把 profile 的 `package.json` 写成带 BOM 的 UTF-8，
+DSH 会报 `Unexpected token '﻿' ... is not valid JSON` 并打不开。**数据没丢**，按下面修：
+
+```powershell
+# 方法一：用修复脚本（推荐）
+powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
+
+# 方法二：手动去掉 BOM
+$p = "$env:USERPROFILE\.dsh\profiles\desktop\package.json"
+$b = [IO.File]::ReadAllBytes($p)
+if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAllBytes($p, $b[3..($b.Length-1)]) }
+```
+
+然后重新打开 DSH，再用新版 `install.ps1` 重装一次即可。
+
 ## 一键安装（推荐）
 
 1. 打开 <https://github.com/Yeoksin/dsh-deepseek-usage-qwen/releases/latest>；
@@ -26,10 +43,10 @@
 
 有些网络环境（公司代理 / 系统 TLS 配置）下 PowerShell 下载会被拒。这时：
 
-1. 手动下载 `dsh-deepseek-usage-qwen-0.16.0-qwen.1.tgz`；
+1. 手动下载 `dsh-deepseek-usage-qwen-0.16.0-qwen.2.tgz`；
 2. PowerShell 里执行：
    ```powershell
-   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-deepseek-usage-qwen-0.16.0-qwen.1.tgz
+   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-deepseek-usage-qwen-0.16.0-qwen.2.tgz
    ```
 
 ## 手动安装（三步）
