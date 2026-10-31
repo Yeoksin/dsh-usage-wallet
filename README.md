@@ -6,6 +6,11 @@
 
 ![用量卡片：阿里云代金券余额](screenshot-qwen.png)
 
+## ⚠️ 装完不显示卡片？（组件名问题，qwen.3 修复）
+
+v0.16.0-qwen.1 / qwen.2 的 `cordis.patch.yml` 沿用了上游写法，把组件名写成 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版的别名，插件显示「未运行」、侧边栏没有卡片。
+
+**v0.16.0-qwen.3 已修复**（组件名改为本包自己的 `dsh-deepseek-usage-qwen`）。重跑最新 `install.ps1` 并完全重启 DSH 即可；排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## ⚠️ 从 0.16.0-qwen.1 升级（重要）
 
 `0.16.0-qwen.1` 的 `install.ps1` 在 **Windows PowerShell 5.1** 下会把 profile 的 `package.json`
@@ -22,7 +27,7 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 ```
 
 或者点崩溃窗口里的「Disable third-party plugins, back up profile patch, and restart」先把 DSH 启动起来。
-`0.16.0-qwen.2` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
+`0.16.0-qwen.3` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
 
 ## 这个分支解决了什么问题
 
@@ -77,7 +82,7 @@ cp -r /path/to/dsh-deepseek-usage-qwen/lib/* lib/     # 覆盖 3 个文件 + 新
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.2.tgz
+npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.3.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。

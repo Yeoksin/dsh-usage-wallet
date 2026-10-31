@@ -40,7 +40,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $PackageName    = 'dsh-deepseek-usage-qwen'
-$PackageVersion = '0.16.0-qwen.2'
+$PackageVersion = '0.16.0-qwen.3'
 $OldPackageName = '@dougen/dsh-deepseek-usage'
 $Repo           = 'Yeoksin/dsh-deepseek-usage-qwen'
 $AssetName      = "$PackageName-$PackageVersion.tgz"

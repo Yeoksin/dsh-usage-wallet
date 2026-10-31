@@ -1,5 +1,10 @@
-# dsh-deepseek-usage — DeepSeek 用量侧边栏插件（npm 包名 @dougen/dsh-deepseek-usage）。
+# dsh-deepseek-usage-qwen — DeepSeek 用量侧边栏插件（fork，含阿里云代金券余额）。
 # Host 半注册 GET /api/deepseek-usage；包声明 dsh.client 提供浏览器侧边栏卡片。
+#
+# 关键：insert 的 name 必须是 **本包自己的包名**。
+# 上游写法 `names: '@dougen/dsh-deepseek-usage'` 是「装成别人的名字」，DSH 的加载器会
+# 把它当成原版插件的别名，结果是：详情页里显示成 @dougen/dsh-deepseek-usage、
+# 状态「未运行」，侧边栏不出现卡片。改成自己的包名后才会作为一个独立插件加载。
 - insert:
     - id: deepseek-usage
-      name: '@dougen/dsh-deepseek-usage'
+      name: 'dsh-deepseek-usage-qwen'
