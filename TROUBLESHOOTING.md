@@ -6,7 +6,7 @@
 把组件名写成了 `@dougen/dsh-deepseek-usage`（等于"顶着原版的名字"加载），DSH 会把它当成
 原版插件的别名，于是**不会作为独立插件运行**，侧边栏也就不出现卡片。
 
-**v0.16.0-qwen.4 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
+**v0.16.0-qwen.5 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
 
 修复步骤：
 
@@ -16,7 +16,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.4`,
+重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.5`,
 「包含的组件」里是 `dsh-deepseek-usage-qwen`（而不是 @dougen/...），状态「运行中」。
 
 ## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（qwen.4 修复）
@@ -25,7 +25,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 而且详情页区块用一个 `pkg.name === "@dougen/dsh-deepseek-usage"` 的判断决定是否渲染。
 注册名换掉之后这个判断永远不成立，于是**AccessKey 输入框和「余额与用量查询状态」区块都不显示**。
 
-`0.16.0-qwen.4` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
+`0.16.0-qwen.5` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -83,6 +83,13 @@ powershell -ExecutionPolicy Bypass -File .\fix-bom.ps1
 
 注意别选成名字很像的 `AliyunSLBReadOnlyAccess`（那是负载均衡）。
 
+## 症状：小米 MiMo 显示「登录状态已过期」或填了 Cookie 仍失败
+
+| 提示 | 原因 | 处理 |
+| --- | --- | --- |
+| 小米 MiMo Cookie 格式不对 | 粘贴内容里没有 `api-platform_serviceToken` 或 `userId` | 重新复制整行 Cookie；只复制 `value` 不够 |
+| 小米 MiMo 登录状态已过期 | Cookie 失效（退出登录、太久没用） | 重新登录 platform.xiaomimimo.com，重新复制 |
+| 余额显示 ¥0.00 | Cookie 正常但账户余额为 0 | 到控制台确认是否还有余额/是否用的是 Token Plan（套餐额度看的是百分比） |
 ## 症状：余额显示 ¥0.00
 
 AccessKey 与权限都正常，只是这个账号当前没有可用代金券（券过期/用完），

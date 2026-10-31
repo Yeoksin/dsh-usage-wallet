@@ -7,7 +7,7 @@
 
 ## 装完看不到卡片？先看这里
 
-- 插件详情页标题应是 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.4`，「包含的组件」也是这个名字；
+- 插件详情页标题应是 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.5`，「包含的组件」也是这个名字；
   如果显示成 `@dougen/dsh-deepseek-usage` +「未运行」，说明你装的是 qwen.1 / qwen.2——重跑最新 `install.ps1`，再完全重启 DSH。
 - 完整排查清单（含用命令确认 bundles 是否写入）见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## 已经装过旧版、DSH 打不开怎么办
@@ -48,10 +48,10 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 
 有些网络环境（公司代理 / 系统 TLS 配置）下 PowerShell 下载会被拒。这时：
 
-1. 手动下载 `dsh-deepseek-usage-qwen-0.16.0-qwen.4.tgz`；
+1. 手动下载 `dsh-deepseek-usage-qwen-0.16.0-qwen.5.tgz`；
 2. PowerShell 里执行：
    ```powershell
-   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-deepseek-usage-qwen-0.16.0-qwen.4.tgz
+   powershell -ExecutionPolicy Bypass -File .\install.ps1 -TgzPath .\dsh-deepseek-usage-qwen-0.16.0-qwen.5.tgz
    ```
 
 ## 手动安装（三步）
@@ -62,6 +62,10 @@ if ($b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { [IO.File]::WriteAl
 2. **让 DSH 加载它**：编辑 `C:\Users\<你>\.dsh\profiles\desktop\package.json`，
    在 `dsh.profile.bundles` 数组里**去掉** `@dougen/dsh-deepseek-usage`、**加上** `dsh-deepseek-usage-qwen`；
 3. **完全重启 DSH**。
+
+## 配置：小米 MiMo（可选）
+
+如果当前模型接的是小米 MiMo：登录 <https://platform.xiaomimimo.com> → 账户余额页 → F12 → Network → 任一 `api/v1` 请求 → 复制整行 **Cookie** → 插件详情页「小米 MiMo 控制台 Cookie」→ 保存。
 
 ## 配置：填阿里云 AccessKey
 

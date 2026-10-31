@@ -2,7 +2,10 @@
 
 给 **DeepSeek Harness（DSH）Web UI** 用的侧边栏插件（[`dougen/dsh-deepseek-usage`](https://github.com/dougen/dsh-deepseek-usage) 的非官方分支）。
 
-除了原版全部能力，**新增：当前路由是 `qwen-token-plan`（阿里云百炼 / Qwen Token Plan）时，显示你阿里云账户的「代金券余额」**。
+除了原版全部能力，这个分支新增两家「模型 Key 查不到、必须走控制台」的账户读数：
+
+- **`qwen-token-plan`（阿里云百炼 / Qwen Token Plan）**：显示阿里云账户的**代金券余额**（BSS OpenAPI + AccessKey）；
+- **`mimo` / `xiaomimimo`（小米 MiMo）**：显示 MiMo 控制台的**账户余额**（可选带 Token Plan 月度用量）。
 
 ![用量卡片：阿里云代金券余额](screenshot-qwen.png)
 
@@ -13,7 +16,7 @@
 - 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**qwen.3 修复**）；
 - 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**qwen.4 修复**）。
 
-**升级到 `v0.16.0-qwen.4`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-deepseek-usage-qwen`；然后完全重启 DSH。
+**升级到 `v0.16.0-qwen.5`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-deepseek-usage-qwen`；然后完全重启 DSH。
 排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## ⚠️ 从 0.16.0-qwen.1 升级（重要）
 
@@ -31,7 +34,7 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 ```
 
 或者点崩溃窗口里的「Disable third-party plugins, back up profile patch, and restart」先把 DSH 启动起来。
-`0.16.0-qwen.4` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
+`0.16.0-qwen.5` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
 
 ## 这个分支解决了什么问题
 
@@ -45,6 +48,22 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 
 顺带修了上游一个 bug：`POST /api/deepseek-usage/token` 在真实 HTTP 下必定返回 413（读请求体的写法与 DSH webServer 的 `node:http` 接口不匹配），所以**原版插件的 OAuth 令牌/AK 保存功能实际不可用**。本分支已修复。
 
+### 小米 MiMo：为什么需要 Cookie
+
+MiMo 开放平台和阿里云一样，**推理 Key 查不到余额**：
+
+- 按量计费的 Key 是 `sk-…`，Token Plan 的 Key 是 `tp-…`，两者都只能调模型；
+- 账户余额与套餐用量在控制台自己的 JSON API 后面（`platform.xiaomimimo.com/api/v1/…`），需要浏览器登录态里的 Cookie：`api-platform_serviceToken` 与 `userId`。
+
+**怎么填**：
+
+1. 浏览器登录 <https://platform.xiaomimimo.com>，打开「账户余额」页；
+2. `F12` → **Network** → 任选一个 `api/v1/...` 请求 → 复制请求头里的整行 **Cookie**；
+3. DSH → 设置 → 插件 → 本插件详情页 →「**小米 MiMo 控制台 Cookie**」→ 粘贴 → 保存。
+
+保存后宿主会立刻请求一次余额，把结果（`已保存 · ¥xx` 或具体失败原因）直接显示在页面上。Cookie 只存在本机凭据库（`MIMO_COOKIE`），不会回传浏览器、也不会发往任何第三方；插件只请求 `platform.xiaomimimo.com`。
+
+> Cookie 会随登录过期。过期后插件会提示「小米 MiMo 登录状态已过期」，重新登录并复制一次即可。注意别把 Cookie 发给别人——它等同于你的控制台登录凭证。
 ## 安装
 
 **一键安装（Windows，推荐）**：到 [Releases](https://github.com/Yeoksin/dsh-deepseek-usage-qwen/releases/latest) 下载 `install.bat` 和 `install.ps1`，放在同一目录双击 `install.bat`，然后完全重启 DSH。脚本会自动下载、解压、并改好 `dsh.profile.bundles`。
@@ -86,7 +105,7 @@ cp -r /path/to/dsh-deepseek-usage-qwen/lib/* lib/     # 覆盖 3 个文件 + 新
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.4.tgz
+npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.5.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。
@@ -133,6 +152,7 @@ export QWEN_TOKEN_PLAN_ACCESS_KEY_SECRET=…
 | 提供商（路由 id） | 类型 | 数据来源 | 凭据引用 |
 | --- | --- | --- | --- |
 | **Qwen Token Plan / 阿里云百炼（`qwen-token-plan`）** | **余额** | **`QueryCashCoupons` → `QueryAccountBalance`（阿里云 BSS OpenAPI）** | **`QWEN_TOKEN_PLAN_ACCESS_KEY_ID` + `…_ACCESS_KEY_SECRET`** |
+| **Xiaomi MiMo（`mimo`、`xiaomimimo`）** | **余额 + 套餐用量** | **`GET https://platform.xiaomimimo.com/api/v1/balance`（+ `/tokenPlan/usage`）** | **`MIMO_COOKIE`（控制台 Cookie）** |
 | DeepSeek（`deepseek-official`、`deepseek-account`、`deepseek`） | 余额 | `GET https://api.deepseek.com/user/balance` | `DEEPSEEK_API_KEY` |
 | Moonshot / Kimi（`moonshotai`） | 余额 | `GET /v1/users/me/balance` | `MOONSHOTAI_API_KEY` / `MOONSHOT_API_KEY` |
 | Z.ai / GLM（`zai`） | 余额 | `GET /api/biz/account/query-customer-account-report` | `ZAI_API_KEY` |
