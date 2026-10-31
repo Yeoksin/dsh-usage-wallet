@@ -6,7 +6,7 @@
 把组件名写成了 `@dougen/dsh-deepseek-usage`（等于"顶着原版的名字"加载），DSH 会把它当成
 原版插件的别名，于是**不会作为独立插件运行**，侧边栏也就不出现卡片。
 
-**v0.16.0-qwen.3 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
+**v0.16.0-qwen.4 已修复**：组件名改成本包自己的 `dsh-deepseek-usage-qwen`。
 
 修复步骤：
 
@@ -16,9 +16,32 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.3`,
+重启后应看到：详情页标题 `dsh-deepseek-usage-qwen`、版本 `0.16.0-qwen.4`,
 「包含的组件」里是 `dsh-deepseek-usage-qwen`（而不是 @dougen/...），状态「运行中」。
 
+## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（qwen.4 修复）
+
+`v0.16.0-qwen.3` 只改了宿主侧的注册名，浏览器端的 bundle 仍声明 `id: "@dougen/dsh-deepseek-usage"`，
+而且详情页区块用一个 `pkg.name === "@dougen/dsh-deepseek-usage"` 的判断决定是否渲染。
+注册名换掉之后这个判断永远不成立，于是**AccessKey 输入框和「余额与用量查询状态」区块都不显示**。
+
+`0.16.0-qwen.4` 把三处一起对齐：bundle 的 `id`、`PACKAGE_NAME` 守卫、i18n 命名空间。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+# 然后完全退出 DSH（托盘也退）再打开
+```
+
+验证：插件详情页往下滚，应看到「余额与用量查询状态」和「阿里云 AccessKey（查代金券余额）」。
+
+## 症状：DSH 打不开，只能靠「禁用第三方插件」启动
+
+说明这个插件在宿主侧启动时抛了异常。依次检查：
+
+1. 是否同时启用了原版 `@dougen/dsh-deepseek-usage` 和本分支 —— 两者注册同一批路由（`/api/deepseek-usage`）与同一个侧边栏槽位，**必须二选一**；
+2. 插件目录 `lib/` 是否完整，至少要有 `index.js`、`accounts.js`、`client.js`、`pricing.js`、`aliyun.js` 五个文件；
+3. 看崩溃日志 `%APPDATA%\@deepseek-ai…\crash-<时间>-host.log`，搜 `deepseek-usage` 看具体报错；
+4. 兜底：先跑 `fix-bom.ps1`，再重跑 `install.ps1`（会重写 bundles 并移除冲突的原版条目）。
 ## 症状：插件装好了、也运行中，但侧边栏没有卡片
 
 按顺序检查：
