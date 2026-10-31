@@ -93,7 +93,7 @@ test('没有 AK/SK 时主卡片给出「未配置」提示，而不是要求配 
   const { routes } = makeCtx();
   const server = await startServer(routes);
   try {
-    const { status, body } = await json(await fetch(`${server.base}/api/deepseek-usage?lang=zh`));
+    const { status, body } = await json(await fetch(`${server.base}/api/usage-wallet?lang=zh`));
     assert.equal(status, 200);
     assert.equal(body.provider.id, 'qwen-token-plan');
     assert.equal(body.provider.kind, 'balance');
@@ -119,7 +119,7 @@ test('真实 HTTP POST 能写入 AK/SK，主卡片随即显示代金券余额合
   }));
   const server = await startServer(routes);
   try {
-    const saved = await json(await fetch(`${server.base}/api/deepseek-usage/token?lang=zh`, {
+    const saved = await json(await fetch(`${server.base}/api/usage-wallet/token?lang=zh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ provider: 'qwen-token-plan', accessKeyId: 'LTAI5tTestKeyId', accessKeySecret: 'testSecretValue123456' }),
@@ -133,13 +133,13 @@ test('真实 HTTP POST 能写入 AK/SK，主卡片随即显示代金券余额合
     assert.equal(store.get('QWEN_TOKEN_PLAN_ACCESS_KEY_ID'), 'LTAI5tTestKeyId');
     assert.equal(store.get('QWEN_TOKEN_PLAN_ACCESS_KEY_SECRET'), 'testSecretValue123456');
 
-    const main = await json(await fetch(`${server.base}/api/deepseek-usage?lang=zh`));
+    const main = await json(await fetch(`${server.base}/api/usage-wallet?lang=zh`));
     assert.equal(main.body.ok, true);
     assert.deepEqual(main.body.errors, []);
     assert.equal(main.body.balance.total, 42.75);
     assert.equal(main.body.balance.currency, 'CNY');
 
-    const cleared = await json(await fetch(`${server.base}/api/deepseek-usage/token?lang=zh`, {
+    const cleared = await json(await fetch(`${server.base}/api/usage-wallet/token?lang=zh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ provider: 'qwen-token-plan', accessKeyId: '', accessKeySecret: '' }),
@@ -159,13 +159,13 @@ test('状态页：list=1 先给出 AK/SK 配置状态，完整请求再填上余
   }));
   const server = await startServer(routes);
   try {
-    await fetch(`${server.base}/api/deepseek-usage/token`, {
+    await fetch(`${server.base}/api/usage-wallet/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ provider: 'qwen-token-plan', accessKeyId: 'LTAI5tTestKeyId', accessKeySecret: 'testSecretValue123456' }),
     });
 
-    const list = await json(await fetch(`${server.base}/api/deepseek-usage/accounts?list=1`));
+    const list = await json(await fetch(`${server.base}/api/usage-wallet/accounts?list=1`));
     const row = list.body.accounts.find((a) => a.id === 'qwen-token-plan');
     assert.ok(row, '状态页应出现 qwen-token-plan 行');
     assert.equal(row.kind, 'balance');
@@ -179,7 +179,7 @@ test('状态页：list=1 先给出 AK/SK 配置状态，完整请求再填上余
       'ALIBABA_CLOUD_ACCESS_KEY_SECRET',
     ]);
 
-    const full = await json(await fetch(`${server.base}/api/deepseek-usage/accounts`));
+    const full = await json(await fetch(`${server.base}/api/usage-wallet/accounts`));
     const fullRow = full.body.accounts.find((a) => a.id === 'qwen-token-plan');
     assert.equal(fullRow.status, 'ok');
     assert.equal(fullRow.balance.total, 8);
@@ -197,12 +197,12 @@ test('AccessKey 无效时主卡片提示去改 AccessKey', async () => {
   }));
   const server = await startServer(routes);
   try {
-    await fetch(`${server.base}/api/deepseek-usage/token`, {
+    await fetch(`${server.base}/api/usage-wallet/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ provider: 'qwen-token-plan', accessKeyId: 'LTAI5tBad', accessKeySecret: 'badSecret' }),
     });
-    const main = await json(await fetch(`${server.base}/api/deepseek-usage?lang=zh`));
+    const main = await json(await fetch(`${server.base}/api/usage-wallet?lang=zh`));
     assert.equal(main.body.balance.total, null);
     // 细分文案：AK 不存在（而不是笼统的「AccessKey 无效」）。
     assert.ok(main.body.errors.some((e) => e.includes('不存在')), JSON.stringify(main.body.errors));
@@ -216,7 +216,7 @@ test('只填半对 AK/SK 被拒绝；非本机 Host 的请求被 403', async () 
   const { routes } = makeCtx();
   const server = await startServer(routes);
   try {
-    const half = await json(await fetch(`${server.base}/api/deepseek-usage/token`, {
+    const half = await json(await fetch(`${server.base}/api/usage-wallet/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ provider: 'qwen-token-plan', accessKeyId: 'LTAI5tTestKeyId' }),
@@ -234,7 +234,7 @@ test('只填半对 AK/SK 被拒绝；非本机 Host 的请求被 403', async () 
       const req = http.request({
         host: '127.0.0.1',
         port,
-        path: '/api/deepseek-usage',
+        path: '/api/usage-wallet',
         method: 'GET',
         headers: { Host: 'evil.example.com' },
       }, (res) => {
@@ -253,11 +253,11 @@ test('只填半对 AK/SK 被拒绝；非本机 Host 的请求被 403', async () 
 
 test('Request 形态的请求体（IPC 桥/测试替身）也能解析', async () => {
   const { routes } = makeCtx();
-  const handler = routes.get('/api/deepseek-usage/token');
+  const handler = routes.get('/api/usage-wallet/token');
   const payload = JSON.stringify({ provider: 'qwen-token-plan', accessKeyId: 'LTAI5tX', accessKeySecret: 'y' });
   const fakeReq = {
     method: 'POST',
-    url: '/api/deepseek-usage/token',
+    url: '/api/usage-wallet/token',
     headers: { host: '127.0.0.1:1', 'content-length': String(Buffer.byteLength(payload)) },
     text: async () => payload,
   };
@@ -276,11 +276,11 @@ test('当前 provider 是别名（xiaomi）时：主卡片认作余额类，且�
   const { routes } = makeCtx({ currentProvider: 'xiaomi' });
   const server = await startServer(routes);
   try {
-    const main = await json(await fetch(`${server.base}/api/deepseek-usage?lang=zh`));
+    const main = await json(await fetch(`${server.base}/api/usage-wallet?lang=zh`));
     assert.equal(main.body.provider.id, 'xiaomi');
     assert.equal(main.body.provider.kind, 'balance', '别名应解析到 MiMo 的余额能力');
 
-    const list = await json(await fetch(`${server.base}/api/deepseek-usage/accounts?list=1`));
+    const list = await json(await fetch(`${server.base}/api/usage-wallet/accounts?list=1`));
     const mimoCards = list.body.accounts.filter((a) => a.multi === 'mimo-cookie');
     assert.equal(mimoCards.length, 1, '只应有一张 MiMo Cookie 卡：' + mimoCards.map((a) => a.id).join(','));
     assert.equal(mimoCards[0].id, 'xiaomi', '保留的是当前 provider 那一行');
@@ -294,7 +294,7 @@ test('MiMo API Key：非法前缀被拒（不发网络请求），空值即清�
   const { routes } = makeCtx();
   const server = await startServer(routes);
   try {
-    const bad = await json(await fetch(`${server.base}/api/deepseek-usage/token`, {
+    const bad = await json(await fetch(`${server.base}/api/usage-wallet/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', host: new URL(server.base).host },
       body: JSON.stringify({ provider: 'mimo', apiKey: 'not-a-key' }),
@@ -302,7 +302,7 @@ test('MiMo API Key：非法前缀被拒（不发网络请求），空值即清�
     assert.equal(bad.status, 400);
     assert.equal(bad.body.ok, false);
 
-    const cleared = await json(await fetch(`${server.base}/api/deepseek-usage/token`, {
+    const cleared = await json(await fetch(`${server.base}/api/usage-wallet/token`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', host: new URL(server.base).host },
       body: JSON.stringify({ provider: 'mimo', apiKey: '' }),

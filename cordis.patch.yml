@@ -1,10 +1,10 @@
 # dsh-usage-wallet —— 通用「余额 / 用量」侧边栏插件。
-# Host 半注册 GET /api/deepseek-usage；包声明 dsh.client 提供浏览器侧边栏卡片。
+# Host 半注册 GET /api/usage-wallet；包声明 dsh.client 提供浏览器侧边栏卡片。
 #
 # 关键：insert 的 name 必须是 **本包自己的包名**。
-# 上游写法 `names: '@dougen/dsh-deepseek-usage'` 是「装成别人的名字」，DSH 的加载器会
-# 把它当成原版插件的别名，结果是：详情页里显示成 @dougen/dsh-deepseek-usage、
+# 历史教训：沿用上游写法 name = '@dougen/dsh-deepseek-usage' 等于「装成别人的名字」，DSH 的加载器会
+# 把它当成原版插件的别名，结果是：详情页里显示成上游包名、
 # 状态「未运行」，侧边栏不出现卡片。改成自己的包名后才会作为一个独立插件加载。
 - insert:
-    - id: deepseek-usage
+    - id: usage-wallet
       name: 'dsh-usage-wallet'

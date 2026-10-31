@@ -1,4 +1,4 @@
-// dsh-deepseek-usage 阿里云余额补丁的确定性测试（node --test）。
+// dsh-usage-wallet 阿里云余额补丁的确定性测试（node --test）。
 // 不联网：签名用阿里云官方文档的 DescribeRegions 向量，HTTP 用注入的 fetch 替身。
 
 import test from 'node:test';

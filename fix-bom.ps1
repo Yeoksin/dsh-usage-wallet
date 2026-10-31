@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  修复 install.ps1 v0.16.0-qwen.1 造成的 DSH 启动失败（profile 的 package.json 被写成带 BOM 的 UTF-8）。
+  修复旧版 install.ps1（0.16.0-qwen.1）造成的 DSH 启动失败（profile 的 package.json 被写成带 BOM 的 UTF-8）。
 
 .DESCRIPTION
   症状：DSH 启动时弹窗「DeepSeek Harness is unavailable … Unexpected token '\uFEFF' … is not valid JSON」。
@@ -67,11 +67,11 @@ if ($json.PSObject.Properties.Name -contains 'dsh' -and $json.dsh -and $json.dsh
   $bundles = @($json.dsh.profile.bundles)
 }
 $hasOld = $bundles -contains '@dougen/dsh-deepseek-usage'
-$hasNew = $bundles -contains 'dsh-deepseek-usage-qwen'
+$hasNew = $bundles -contains 'dsh-usage-wallet'
 if ($hasOld -and $hasNew) {
-  Write-Err2 'bundles 里同时有原版和本分支，二者路由冲突，请二选一（建议保留 dsh-deepseek-usage-qwen）。'
+  Write-Err2 'bundles 里同时有原版和本分支，二者路由冲突，请二选一（建议保留 dsh-usage-wallet）。'
 } elseif ($hasNew) {
-  Write-Ok 'bundles 里已启用 dsh-deepseek-usage-qwen'
+  Write-Ok 'bundles 里已启用 dsh-usage-wallet'
 } elseif ($hasOld) {
   Write-Info 'bundles 里是原版插件（未启用本分支）'
 }

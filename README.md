@@ -7,16 +7,16 @@
 - **`qwen-token-plan`（阿里云百炼 / Qwen Token Plan）**：显示阿里云账户的**代金券余额**（BSS OpenAPI + AccessKey）；
 - **`mimo` / `xiaomimimo`（小米 MiMo）**：显示 MiMo 控制台的**账户余额**（可选带 Token Plan 月度用量）。
 
-![用量卡片：阿里云代金券余额](screenshot-qwen.png)
+![用量卡片：阿里云代金券余额](screenshot-balance.png)
 
 ## ⚠️ 装完不显示卡片 / 看不到 AccessKey 输入框？
 
-`v0.16.0-qwen.1` ~ `qwen.3` 有两处遗留问题：
+`v0.16.0-qwen.1` ~ `v0.16.0-qwen.6`（改名前） 有两处遗留问题：
 
 - 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**qwen.3 修复**）；
 - 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**qwen.4 修复**）。
 
-**升级到 `v0.16.0-qwen.7`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
+**升级到 `v0.17.1`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
 排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## ⚠️ 从 0.16.0-qwen.1 升级（重要）
 
@@ -34,7 +34,7 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 ```
 
 或者点崩溃窗口里的「Disable third-party plugins, back up profile patch, and restart」先把 DSH 启动起来。
-`0.16.0-qwen.7` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
+`0.17.1` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
 
 ## 这个分支解决了什么问题
 
@@ -46,7 +46,7 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 - 如果一张可用代金券都没有，回落调 `QueryAccountBalance`：显示账户可用额度（现金 + 信控）；
 - 结果就是侧边栏卡片上的 `¥金额`，每 30 秒自动刷新，点卡片立即刷新。
 
-顺带修了上游一个 bug：`POST /api/deepseek-usage/token` 在真实 HTTP 下必定返回 413（读请求体的写法与 DSH webServer 的 `node:http` 接口不匹配），所以**原版插件的 OAuth 令牌/AK 保存功能实际不可用**。本分支已修复。
+顺带修了上游一个 bug：`POST /api/usage-wallet/token` 在真实 HTTP 下必定返回 413（读请求体的写法与 DSH webServer 的 `node:http` 接口不匹配），所以**原版插件的 OAuth 令牌/AK 保存功能实际不可用**。本分支已修复。
 
 ### 小米 MiMo：两种输入，各管一件事
 
@@ -96,24 +96,28 @@ git clone https://github.com/<你的用户名>/dsh-usage-wallet.git
 并把包名加进 `dsh.profile.bundles` 数组末尾：
 
 ```json
-"bundles": [ "…", "@dougen/dsh-deepseek-usage"  →  改成 "dsh-usage-wallet" ]
+"bundles": [ "…", "dsh-usage-wallet" ]
 ```
 
-> ⚠️ **不要同时启用原版和本分支**：两者注册相同的路由（`/api/deepseek-usage`）与侧边栏槽位，会冲突。启用本分支前，先把原版 `@dougen/dsh-deepseek-usage` 从 `bundles` 里去掉。
+> ⚠️ **不要同时启用原版和本插件**：两者注册同一批路由（`/api/usage-wallet`）与同一个侧边栏槽位，会冲突。启用本插件前，先把原版 `@dougen/dsh-deepseek-usage` 从 `bundles` 里去掉（`install.ps1` 会自动做）。
 
-### 方式 B：直接替换文件（最省事）
+### 方式 B：原地覆盖已安装目录（升级时最省事）
 
-```bash
-cd ~/.dsh/profiles/desktop/node_modules/@dougen/dsh-deepseek-usage
-cp -r /path/to/dsh-usage-wallet/lib/* lib/     # 覆盖 3 个文件 + 新增 aliyun.js
+已经装过 `dsh-usage-wallet` 时只换文件即可，`package.json` 不用动：
+
+```powershell
+$tgz = "$env:TEMP\wallet.tgz"
+Invoke-WebRequest "https://github.com/Yeoksin/dsh-usage-wallet/releases/latest/download/dsh-usage-wallet-0.17.1.tgz" -OutFile $tgz
+$dst = "$env:TEMP\wallet"; Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
+tar -xzf $tgz -C $dst --strip-components=1
+Copy-Item "$dst\*" "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usage-wallet\" -Recurse -Force
 ```
 
-等价于原版包原地升级，`package.json` 里的条目不用改。
-
+覆盖后**完全重启 DSH** 即可。如果你从旧名 `dsh-deepseek-usage-qwen` 过来，请改用 `install.ps1`（它会清理旧条目）。
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-usage-wallet-0.16.0-qwen.7.tgz
+npm pack                     # 产出 dsh-usage-wallet-0.17.1.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。

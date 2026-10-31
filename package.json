@@ -1,6 +1,6 @@
 {
   "name": "dsh-usage-wallet",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "DSH sidebar widget that shows the active provider's balance or subscription usage — Alibaba Cloud voucher balance (BSS OpenAPI + AccessKey), Xiaomi MiMo console balance and token-plan usage, plus DeepSeek/Moonshot/Z.ai/OpenRouter balances and Kimi/MiniMax/OpenCode quotas — with per-token unit prices, a provider query-status page, and Chinese/English UI.",
   "type": "module",
   "main": "lib/index.js",
@@ -22,9 +22,9 @@
     "install.bat",
     "install.ps1",
     "fix-bom.ps1",
-    "screenshot-qwen.png",
     "TROUBLESHOOTING.md",
-    "install-offline.bat"
+    "install-offline.bat",
+    "screenshot-balance.png"
   ],
   "exports": {
     ".": "./lib/index.js",
@@ -58,5 +58,13 @@
   ],
   "license": "MIT",
   "private": true,
-  "author": "fork by the repository owner; original plugin by dougen (MIT)"
+  "author": "fork by the repository owner; original plugin by dougen (MIT)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yeoksin/dsh-usage-wallet.git"
+  },
+  "homepage": "https://github.com/Yeoksin/dsh-usage-wallet#readme",
+  "bugs": {
+    "url": "https://github.com/Yeoksin/dsh-usage-wallet/issues"
+  }
 }

@@ -259,7 +259,7 @@ function makePendingFetch() {
   globalThis.fetch = (url) => new Promise((resolve) => pending.push({ url, resolve }));
   return {
     pending,
-    usage: () => pending.filter((p) => p.url.startsWith('/api/deepseek-usage?')),
+    usage: () => pending.filter((p) => p.url.startsWith('/api/usage-wallet?')),
   };
 }
 
@@ -388,7 +388,7 @@ test('宿主返回的假期表覆盖内置表：峰谷判定跟着宿主走', as
   });
   await flush();
 
-  const usage = pending.find((p) => p.url.startsWith('/api/deepseek-usage?'));
+  const usage = pending.find((p) => p.url.startsWith('/api/usage-wallet?'));
   usage.resolve({
     ok: true,
     status: 200,

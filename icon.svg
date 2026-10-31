@@ -1,5 +1,5 @@
 <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- dsh-deepseek-usage：余额 ¥ 硬币 + 峰谷指示灯。
+  <!-- dsh-usage-wallet：余额 ¥ 硬币 + 峰谷指示灯。
        硬币与 ¥ 就是卡片上放大的余额，右上角的绿色圆点是卡片右上角的峰谷指示灯
        （绿=空闲、橙=高峰），这两样正是卡片显示的全部内容。 -->
   <defs>
