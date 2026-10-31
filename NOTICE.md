@@ -7,6 +7,8 @@
 
 本分支 v0.17.0 起叫 **`dsh-usage-wallet`**（原名 `dsh-deepseek-usage-qwen`）：它不只服务 qwen-token-plan，而是通用的「当前模型余额 / 用量」侧边栏卡片。仓库 <https://github.com/Yeoksin/dsh-usage-wallet>。
 
+版本号自 `1.0.0` 起独立编号，不再沿用上游 `0.16.x` 的版本（本分支自 `v0.17.0` 改名后即与上游脱钩）。
+
 ## 本分支相对上游的改动
 
 所有改动都集中在三个地方，`lib/pricing.js` 及其余文件与上游 `v0.16.0` 逐字节一致：

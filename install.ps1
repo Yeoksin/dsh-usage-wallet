@@ -42,7 +42,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $PackageName    = 'dsh-usage-wallet'
-$PackageVersion = '0.17.3'
+$PackageVersion = '1.0.0'
 # 需要从 bundles 里清理的旧名字（上游原版 + 本插件之前的包名），避免两个插件抢同一批路由/槽位
 $LegacyPackageNames = @('@dougen/dsh-deepseek-usage', 'dsh-deepseek-usage-qwen')
 $Repo           = 'Yeoksin/dsh-usage-wallet'
