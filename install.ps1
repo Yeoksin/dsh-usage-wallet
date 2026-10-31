@@ -186,7 +186,11 @@ try {
     $json.dsh.profile.bundles = [object[]]$bundles.ToArray()
 
     if ($null -ne $json.dependencies) {
-      if ($json.dependencies.PSObject.Properties.Name -contains $OldPackageName) {
+      # Set-StrictMode -Version Latest 下，dependencies 为空对象时
+      # `$obj.PSObject.Properties.Name` 会抛「在此对象上找不到与参数名称 Name 匹配的属性」，
+      # 所以整体用 @() 包一层再比较。
+      $depNames = @($json.dependencies.PSObject.Properties | Select-Object -ExpandProperty Name)
+      if ($depNames -contains $OldPackageName) {
         $json.dependencies.PSObject.Properties.Remove($OldPackageName)
       }
       $json.dependencies | Add-Member -NotePropertyName $PackageName -NotePropertyValue "file:node_modules/$PackageName" -Force
