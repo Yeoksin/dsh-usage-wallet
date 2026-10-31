@@ -289,3 +289,27 @@ test('当前 provider 是别名（xiaomi）时：主卡片认作余额类，且�
     await server.close();
   }
 });
+
+test('MiMo API Key：非法前缀被拒（不发网络请求），空值即清除', async () => {
+  const { routes } = makeCtx();
+  const server = await startServer(routes);
+  try {
+    const bad = await json(await fetch(`${server.base}/api/deepseek-usage/token`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', host: new URL(server.base).host },
+      body: JSON.stringify({ provider: 'mimo', apiKey: 'not-a-key' }),
+    }));
+    assert.equal(bad.status, 400);
+    assert.equal(bad.body.ok, false);
+
+    const cleared = await json(await fetch(`${server.base}/api/deepseek-usage/token`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', host: new URL(server.base).host },
+      body: JSON.stringify({ provider: 'mimo', apiKey: '' }),
+    }));
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.configured, false);
+  } finally {
+    await server.close();
+  }
+});

@@ -16,7 +16,7 @@
 - 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**qwen.3 修复**）；
 - 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**qwen.4 修复**）。
 
-**升级到 `v0.16.0-qwen.6`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-deepseek-usage-qwen`；然后完全重启 DSH。
+**升级到 `v0.16.0-qwen.7`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-deepseek-usage-qwen`；然后完全重启 DSH。
 排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## ⚠️ 从 0.16.0-qwen.1 升级（重要）
 
@@ -34,7 +34,7 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 ```
 
 或者点崩溃窗口里的「Disable third-party plugins, back up profile patch, and restart」先把 DSH 启动起来。
-`0.16.0-qwen.6` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
+`0.16.0-qwen.7` 改成无 BOM 字节写入 + 落盘后自检 + 失败自动回滚，不会再出现这个问题。
 
 ## 这个分支解决了什么问题
 
@@ -48,6 +48,14 @@ powershell -ExecutionPolicy Bypass -File .ix-bom.ps1
 
 顺带修了上游一个 bug：`POST /api/deepseek-usage/token` 在真实 HTTP 下必定返回 413（读请求体的写法与 DSH webServer 的 `node:http` 接口不匹配），所以**原版插件的 OAuth 令牌/AK 保存功能实际不可用**。本分支已修复。
 
+### 小米 MiMo：两种输入，各管一件事
+
+| 输入 | 能读到什么 | 为什么 |
+| --- | --- | --- |
+| **API Key**（`sk-…` 按量 / `tp-…`、`ttp-…` Token Plan） | 校验 Key 是否有效、属于哪个集群、能调哪些模型 | MiMo 推理网关**没有**任何账户/余额接口：`/v1/models` 之外的路径（`/v1/balance`、`/v1/usage`、`/v1/billing/…`）实测全部 404，官方文档也只把余额放在控制台。 |
+| **控制台 Cookie** | 账户余额（¥）、可选的 Token Plan 月度用量百分比与周期结束时间 | 余额与套餐用量在 `platform.xiaomimimo.com/api/v1/…`，需要登录态 Cookie（`api-platform_serviceToken` + `userId`）。 |
+
+所以侧边栏的 MiMo 卡片由「Cookie」决定数值：填了 Cookie 才会出现余额与套餐百分比；API Key 只用来确认「这把 Key 能用」，不会伪造任何金额。
 ### 小米 MiMo：为什么需要 Cookie
 
 MiMo 开放平台和阿里云一样，**推理 Key 查不到余额**：
@@ -105,7 +113,7 @@ cp -r /path/to/dsh-deepseek-usage-qwen/lib/* lib/     # 覆盖 3 个文件 + 新
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.6.tgz
+npm pack                     # 产出 dsh-deepseek-usage-qwen-0.16.0-qwen.7.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。
