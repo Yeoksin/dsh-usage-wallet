@@ -20,6 +20,10 @@
 
 ## 安装
 
+**一键安装（Windows，推荐）**：到 [Releases](https://github.com/Yeoksin/dsh-deepseek-usage-qwen/releases/latest) 下载 `install.bat` 和 `install.ps1`，放在同一目录双击 `install.bat`，然后完全重启 DSH。脚本会自动下载、解压、并改好 `dsh.profile.bundles`。
+
+详细步骤（含手动安装、卸载、网络不通时的离线参数）见 [INSTALL.md](./INSTALL.md)。
+
 DSH 的插件目录是 `~/.dsh/profiles/desktop/node_modules/`。任选一种：
 
 ### 方式 A：git clone（推荐，方便更新）

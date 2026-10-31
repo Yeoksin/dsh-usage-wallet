@@ -1,0 +1,222 @@
+﻿<#
+.SYNOPSIS
+  DSH 插件安装脚本：dsh-deepseek-usage-qwen（侧边栏显示阿里云代金券余额）。
+
+.DESCRIPTION
+  把 dsh-deepseek-usage-qwen 装进 DSH 的 profile 插件目录，并把包名写进
+  dsh.profile.bundles（自动移除会冲突的原版 @dougen/dsh-deepseek-usage）。
+  可重复执行：已装过会就地升级。
+
+  推荐用法（双击 install.bat 也行，它只是调用本脚本）：
+
+    powershell -ExecutionPolicy Bypass -File install.ps1
+    powershell -ExecutionPolicy Bypass -File install.ps1 -TgzPath C:\path\to\pkg.tgz
+
+  联网下载依次尝试 curl.exe（Win10 1803+ 自带）、TLS1.2 下的 Invoke-WebRequest、
+  .NET HttpClient —— Windows PowerShell 5.1 的 IWR 常因 TLS/代理配置直接失败。
+
+.PARAMETER TgzPath
+  已经下载好的 .tgz 路径（离线/内网用，跳过下载）。
+
+.PARAMETER Force
+  不询问确认。
+
+.PARAMETER NoBundles
+  只拷文件，不改 bundles。
+#>
+[CmdletBinding()]
+param(
+  [string]$TgzPath = '',
+  [switch]$Force,
+  [switch]$NoBundles
+)
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+$PackageName    = 'dsh-deepseek-usage-qwen'
+$PackageVersion = '0.16.0-qwen.1'
+$OldPackageName = '@dougen/dsh-deepseek-usage'
+$Repo           = 'Yeoksin/dsh-deepseek-usage-qwen'
+$AssetName      = "$PackageName-$PackageVersion.tgz"
+$AssetUrl       = "https://github.com/$Repo/releases/download/v$PackageVersion/$AssetName"
+$ShaUrl         = "https://github.com/$Repo/releases/download/v$PackageVersion/assets.sha256"
+
+function Write-Step([string]$t)  { Write-Host "`n==> $t" -ForegroundColor Cyan }
+function Write-Ok([string]$t)    { Write-Host "  [OK] $t" -ForegroundColor Green }
+function Write-Warn2([string]$t) { Write-Host "  [!] $t" -ForegroundColor Yellow }
+function Write-Err([string]$t)   { Write-Host "  [x] $t" -ForegroundColor Red }
+
+# ---------------------------------------------------------------- 1. 环境检查
+Write-Step '检查环境'
+
+$profileDir  = Join-Path $env:USERPROFILE '.dsh\profiles\desktop'
+$profilePkg  = Join-Path $profileDir 'package.json'
+$nodeModules = Join-Path $profileDir 'node_modules'
+
+if (-not (Test-Path $profilePkg)) {
+  Write-Err "没找到 DSH profile：$profilePkg"
+  Write-Err '请先安装并至少启动一次 DeepSeek Harness 桌面版。'
+  exit 1
+}
+Write-Ok "DSH profile：$profileDir"
+
+if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
+  Write-Err '系统里没有 tar.exe（Windows 10 1803+ 自带）。请升级系统，或手动解压 tgz。'
+  exit 1
+}
+
+$dshRunning = @(Get-Process -Name 'DeepSeek Harness','deepseek-harness' -ErrorAction SilentlyContinue)
+if ($dshRunning.Count -gt 0) {
+  Write-Warn2 'DSH 正在运行：安装后请【完全退出并重新打开 DSH】（托盘也要退出）。'
+}
+
+# ---------------------------------------------------------------- 2. 拿到压缩包
+$tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('dsh-usage-qwen-' + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $tempRoot | Out-Null
+$tgz = Join-Path $tempRoot $AssetName
+
+try {
+  if ($TgzPath -ne '') {
+    Write-Step "使用本地压缩包：$TgzPath"
+    if (-not (Test-Path $TgzPath)) { throw "找不到文件：$TgzPath" }
+    Copy-Item $TgzPath $tgz -Force
+  }
+  else {
+    Write-Step "下载 $PackageName $PackageVersion"
+    $downloaded = $false
+
+    $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+    if ($curl) {
+      & $curl.Source -L --fail --silent --show-error --retry 2 -o $tgz $AssetUrl
+      if ($LASTEXITCODE -eq 0 -and (Test-Path $tgz) -and (Get-Item $tgz).Length -gt 0) { $downloaded = $true }
+    }
+
+    if (-not $downloaded) {
+      try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $AssetUrl -OutFile $tgz -UseBasicParsing -MaximumRedirection 10 -TimeoutSec 120
+        if ((Test-Path $tgz) -and (Get-Item $tgz).Length -gt 0) { $downloaded = $true }
+      }
+      catch { }
+    }
+
+    if (-not $downloaded) {
+      try {
+        Add-Type -AssemblyName System.Net.Http
+        $client = New-Object System.Net.Http.HttpClient
+        $client.Timeout = [TimeSpan]::FromMinutes(3)
+        $bytes = $client.GetByteArrayAsync($AssetUrl).GetAwaiter().GetResult()
+        [IO.File]::WriteAllBytes($tgz, $bytes)
+        $downloaded = $true
+      }
+      catch { }
+    }
+
+    if (-not $downloaded) {
+      throw ("下载失败。请手动下载后重跑：`n    $AssetUrl`n  然后：powershell -ExecutionPolicy Bypass -File install.ps1 -TgzPath <下载的文件>")
+    }
+
+    if ($curl) {
+      try {
+        $shaFile = Join-Path $tempRoot 'assets.sha256'
+        & $curl.Source -L --fail --silent -o $shaFile $ShaUrl
+        if ($LASTEXITCODE -eq 0 -and (Test-Path $shaFile)) {
+          $line = (Get-Content $shaFile | Where-Object { $_ -match [regex]::Escape($AssetName) } | Select-Object -First 1)
+          if ($line) {
+            $want = ($line -split '\s+')[0].ToLower()
+            $have = (Get-FileHash -Path $tgz -Algorithm SHA256).Hash.ToLower()
+            if ($want -ne $have) { throw "SHA-256 不匹配（期望 $want，实际 $have），文件可能被改动，已中止。" }
+            Write-Ok 'SHA-256 校验通过'
+          }
+        }
+        else { Write-Warn2 '跳过 SHA-256 校验（取不到校验文件）' }
+      }
+      catch {
+        if ($_.Exception.Message -like 'SHA-256*') { throw }
+        Write-Warn2 '跳过 SHA-256 校验（取不到校验文件）'
+      }
+    }
+  }
+
+  Write-Ok ('压缩包 {0:N0} 字节' -f (Get-Item $tgz).Length)
+
+  # -------------------------------------------------------------- 3. 解压
+  Write-Step "解压到 $nodeModules\$PackageName"
+  $extract = Join-Path $tempRoot 'extract'
+  New-Item -ItemType Directory -Path $extract | Out-Null
+  & tar -xzf $tgz -C $extract
+  if ($LASTEXITCODE -ne 0) { throw '解压失败（tar 返回非 0）' }
+
+  $staged = Join-Path $extract 'package'
+  if (-not (Test-Path (Join-Path $staged 'package.json'))) { throw '压缩包结构异常：找不到 package/package.json' }
+
+  if (-not (Test-Path $nodeModules)) { New-Item -ItemType Directory -Path $nodeModules -Force | Out-Null }
+  $target = Join-Path $nodeModules $PackageName
+  if (Test-Path $target) {
+    Write-Warn2 "移除旧版本：$target"
+    Remove-Item $target -Recurse -Force
+  }
+  New-Item -ItemType Directory -Path $target -Force | Out-Null
+  Copy-Item -Path (Join-Path $staged '*') -Destination $target -Recurse -Force
+  Write-Ok ('插件文件已就位（{0} 个）' -f (Get-ChildItem $target -Recurse -File | Measure-Object).Count)
+
+  # -------------------------------------------------------------- 4. 改 bundles
+  if (-not $NoBundles) {
+    Write-Step '更新 dsh.profile.bundles'
+    $backup = "$profilePkg.bak-" + (Get-Date).ToString('yyyyMMdd-HHmmss')
+    Copy-Item $profilePkg $backup
+    Write-Ok "已备份：$backup"
+
+    $json = Get-Content $profilePkg -Raw | ConvertFrom-Json
+    if ($null -eq $json.dsh -or $null -eq $json.dsh.profile -or $null -eq $json.dsh.profile.bundles) {
+      throw "profile 的 package.json 里没有 dsh.profile.bundles，请手动把 `"$PackageName`" 加进 bundles。"
+    }
+
+    $bundles = [System.Collections.Generic.List[object]]::new()
+    foreach ($b in $json.dsh.profile.bundles) { $bundles.Add($b) }
+    $hadOld = $bundles.Contains($OldPackageName)
+    if ($hadOld) { [void]$bundles.Remove($OldPackageName) }
+    if (-not $bundles.Contains($PackageName)) { $bundles.Add($PackageName) }
+    $json.dsh.profile.bundles = [object[]]$bundles.ToArray()
+
+    if ($null -ne $json.dependencies) {
+      if ($json.dependencies.PSObject.Properties.Name -contains $OldPackageName) {
+        $json.dependencies.PSObject.Properties.Remove($OldPackageName)
+      }
+      $json.dependencies | Add-Member -NotePropertyName $PackageName -NotePropertyValue "file:node_modules/$PackageName" -Force
+    }
+
+    ($json | ConvertTo-Json -Depth 32) | Set-Content -Path $profilePkg -Encoding UTF8
+
+    $check = Get-Content $profilePkg -Raw | ConvertFrom-Json
+    if (-not ($check.dsh.profile.bundles -contains $PackageName)) { throw "自检失败：bundles 里没有新包，原文件已备份在 $backup" }
+    if ($hadOld) { Write-Ok "已从 bundles 移除原版 $OldPackageName" }
+    Write-Ok "已把 $PackageName 加入 bundles"
+  }
+}
+catch {
+  Write-Err $_.Exception.Message
+  exit 1
+}
+finally {
+  Remove-Item $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# ---------------------------------------------------------------- 5. 收尾
+Write-Step '完成'
+Write-Host @"
+
+  下一步（必须做）：
+    1. 完全退出 DeepSeek Harness（托盘图标也要退出），重新打开；
+    2. 设置 → 插件 → 找到 $PackageName → 详情页底部
+       「阿里云 AccessKey（查代金券余额）」填入 AccessKey ID / Secret 并保存；
+       RAM 子账号需要 AliyunBSSReadOnlyAccess（资源范围选「账号级别」）；
+    3. 侧边栏底部卡片出现 ¥ 金额即成功。
+
+  卸载：从 profile 的 package.json 的 dsh.profile.bundles 移除 $PackageName，
+        删掉 node_modules\$PackageName，重启 DSH。
+
+"@ -ForegroundColor Gray
+
+if ($dshRunning.Count -gt 0) { Write-Host '  提醒：检测到 DSH 正在运行，别忘了彻底重启它。' -ForegroundColor Yellow }

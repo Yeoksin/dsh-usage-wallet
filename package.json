@@ -18,7 +18,9 @@
     "LICENSE",
     "NOTICE.md",
     "screenshot.png",
-    "screenshots.json"
+    "screenshots.json",
+    "install.bat",
+    "install.ps1"
   ],
   "exports": {
     ".": "./lib/index.js",
