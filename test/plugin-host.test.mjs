@@ -313,3 +313,23 @@ test('MiMo API Key：非法前缀被拒（不发网络请求），空值即清�
     await server.close();
   }
 });
+
+test('只填 MiMo API Key、缺 Cookie：状态是 key-only（不误报 no-key）', async () => {
+  const { routes, store } = makeCtx({ currentProvider: 'mimo' });
+  store.set('MIMO_API_KEY', 'sk-live-key'); // 只存 Key，不存 MIMO_COOKIE
+  const server = await startServer(routes);
+  try {
+    const list = await json(await fetch(`${server.base}/api/usage-wallet/accounts?list=1`));
+    const mimo = list.body.accounts.find((a) => a.multi === 'mimo-cookie');
+    assert.ok(mimo, '应有 MiMo 行');
+    assert.equal(mimo.status, 'key-only', '只填 Key 时应是 key-only，而非 no-key');
+    assert.equal(mimo.apiKey.configured, true, 'API Key 已配置');
+    assert.equal(mimo.cookie.configured, false, 'Cookie 未配置');
+    // 全都没填时才回到 no-key
+    store.delete('MIMO_API_KEY');
+    const list2 = await json(await fetch(`${server.base}/api/usage-wallet/accounts?list=1`));
+    assert.equal(list2.body.accounts.find((a) => a.multi === 'mimo-cookie').status, 'no-key');
+  } finally {
+    await server.close();
+  }
+});
