@@ -178,3 +178,31 @@ test('粘贴格式宽容：带 "Cookie:" 前缀或整份请求头都能解析', 
   // 缺必需项仍然拒绝（不能把无关内容当成 Cookie 通过）
   assert.equal(normalizeMiMoCookie('host: platform.xiaomimimo.com\nuser-agent: x'), null);
 });
+
+test('没有 Token Plan 时不显示套餐用量（哪怕 usage 接口返回 percent 0）', async () => {
+  const result = await readMiMoAccount({
+    cookie: VALID,
+    fetchImpl: fakeFetch({
+      '/api/v1/balance': { body: { code: 0, data: { balance: '2.99', currency: 'CNY' } } },
+      // detail 表示"没有套餐"：planCode 缺失
+      '/api/v1/tokenPlan/detail': { body: { code: 0, data: { planCode: null, expired: false } } },
+      // usage 接口仍然吐了一个 0——不能拿它当"用了 0%"显示
+      '/api/v1/tokenPlan/usage': { body: { code: 0, data: { monthUsage: { percent: 0, items: [] } } } },
+    }),
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.balance.total, 2.99);
+  assert.equal(result.usage, null, '没有套餐就不要显示 usage 窗口');
+});
+
+test('过期的 Token Plan 也不显示用量', async () => {
+  const result = await readMiMoAccount({
+    cookie: VALID,
+    fetchImpl: fakeFetch({
+      '/api/v1/balance': { body: { code: 0, data: { balance: '1.00', currency: 'CNY' } } },
+      '/api/v1/tokenPlan/detail': { body: { code: 0, data: { planCode: 'mimo-standard', expired: true } } },
+      '/api/v1/tokenPlan/usage': { body: { code: 0, data: { monthUsage: { percent: 0.9, items: [] } } } },
+    }),
+  });
+  assert.equal(result.usage, null, '已过期的套餐不再显示用量');
+});

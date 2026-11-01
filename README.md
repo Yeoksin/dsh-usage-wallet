@@ -16,7 +16,7 @@
 - 组件名写成了上游的 `@dougen/dsh-deepseek-usage`，DSH 会把它当成原版别名：插件显示「未运行」、侧边栏没有卡片（**1.0.2 修复**）；
 - 浏览器端 bundle 的 `id` 与详情页的包名判断仍是上游名字，导致**详情页里不渲染「阿里云 AccessKey」输入框**（**1.0.3 修复**）。
 
-**升级到 `v1.0.11`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
+**升级到 `v1.0.15`**：重跑最新的 `install.ps1`；或在插件页卸载后，「添加插件」填 `https://github.com/Yeoksin/dsh-usage-wallet`；然后完全重启 DSH。
 排查清单见 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)。
 ## ⚠️ 从 1.0.0 升级（重要）
 
@@ -63,15 +63,39 @@ MiMo 开放平台和阿里云一样，**推理 Key 查不到余额**：
 - 按量计费的 Key 是 `sk-…`，Token Plan 的 Key 是 `tp-…`，两者都只能调模型；
 - 账户余额与套餐用量在控制台自己的 JSON API 后面（`platform.xiaomimimo.com/api/v1/…`），需要浏览器登录态里的 Cookie：`api-platform_serviceToken` 与 `userId`。
 
-**怎么填**：
+**怎么填：完整 5 步抓 Cookie**
 
-1. 浏览器登录 <https://platform.xiaomimimo.com>，打开「账户余额」页；
-2. `F12` → **Network** → 任选一个 `api/v1/...` 请求 → 复制请求头里的整行 **Cookie**；
-3. DSH → 设置 → 插件 → 本插件详情页 →「**小米 MiMo 控制台 Cookie**」→ 粘贴 → 保存。
+| 步骤 | 操作 |
+| --- | --- |
+| **0** | 浏览器打开 <https://platform.xiaomimimo.com> 并登录（停在「财务 → 账户余额」页面即可） |
+| **1** | 按 **`F12`**（或 `Ctrl+Shift+I`）打开开发者工具 |
+| **2** | 顶部标签切到 **网络 / Network**，然后按 **`F5` 刷新页面**（不刷新列表是空的）；筛选框输入 **`api/v1`**，或点 **Fetch/XHR** 分类 |
+| **3** | 列表里点任意一条请求，例如 `balance`、`user`、`tokenPlan/detail` |
+| **4** | 右侧 **标头 / Headers** → 往下滚到 **请求标头 / Request Headers** → 找到这一行：<br>`cookie: api-platform_serviceToken=eyJ…; userId=2451…; …`<br>复制方式任选：**右键请求 → 复制 → 复制请求标头**（整份粘过来也认），或双击该值选中复制 |
+| **5** | 回到 DSH → 设置 → 插件 → 本插件详情页 → 卡片里的 **「② 控制台 Cookie」**多行框 → 粘贴 → 点下方 **保存** |
 
-保存后宿主会立刻请求一次余额，把结果（`已保存 · ¥xx` 或具体失败原因）直接显示在页面上。Cookie 只存在本机凭据库（`MIMO_COOKIE`），不会回传浏览器、也不会发往任何第三方；插件只请求 `platform.xiaomimimo.com`。
+保存后宿主会立刻请求一次余额，把结果直接显示在卡片内：
 
-> Cookie 会随登录过期。过期后插件会提示「小米 MiMo 登录状态已过期」，重新登录并复制一次即可。注意别把 Cookie 发给别人——它等同于你的控制台登录凭证。
+- 成功 → `已保存，余额 ¥xx`，侧边栏底部同时出现 `¥金额` 卡片（30 秒自动刷新，点一下立即刷新）；
+- 失败 → 明确写出原因（格式不对 / 登录已过期 / 网络不通）。
+
+**注意事项**：
+
+- Cookie 必须包含 `api-platform_serviceToken` 与 `userId` 两项，缺任意一项会提示格式不对；
+- `1.0.14` 起整份请求头也能粘，插件只挑已知 cookie、忽略其余行；
+- Cookie 只存在本机凭据库（`MIMO_COOKIE`），不会回传浏览器、也不会发往任何第三方；插件只请求 `platform.xiaomimimo.com`；
+- **Cookie 等同于你的控制台登录凭证**，别发给别人、别贴进群聊；
+- Cookie 会随登录过期（几天到几周不等）。过期后卡片会提示「小米 MiMo 登录状态已过期」，重新登录并复制一次即可。
+
+**卡住了怎么办**：
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| 粘贴后提示「Cookie 格式不对」 | 缺 `api-platform_serviceToken` 或 `userId` | 重新登录并复制整行；确认没复制错 |
+| 提示「登录状态已过期」 | Cookie 失效 | 重新登录 `platform.xiaomimimo.com` 再复制 |
+| 卡片显示余额，但你买了 Token Plan 却没有百分比 | 套餐已过期，或该接口未返回有效套餐 | 去控制台「Token Plan」确认套餐是否在有效期内 |
+
+
 ## 安装
 
 **一键安装（Windows，推荐）**：到 [Releases](https://github.com/Yeoksin/dsh-usage-wallet/releases/latest) 下载 `install.bat` 和 `install.ps1`，放在同一目录双击 `install.bat`，然后完全重启 DSH。脚本会自动下载、解压、并改好 `dsh.profile.bundles`。
@@ -107,7 +131,7 @@ git clone https://github.com/<你的用户名>/dsh-usage-wallet.git
 
 ```powershell
 $tgz = "$env:TEMP\wallet.tgz"
-Invoke-WebRequest "https://github.com/Yeoksin/dsh-usage-wallet/releases/latest/download/dsh-usage-wallet-1.0.11.tgz" -OutFile $tgz
+Invoke-WebRequest "https://github.com/Yeoksin/dsh-usage-wallet/releases/latest/download/dsh-usage-wallet-1.0.15.tgz" -OutFile $tgz
 $dst = "$env:TEMP\wallet"; Remove-Item $dst -Recurse -Force -ErrorAction SilentlyContinue
 tar -xzf $tgz -C $dst --strip-components=1
 Copy-Item "$dst\*" "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usage-wallet\" -Recurse -Force
@@ -117,7 +141,7 @@ Copy-Item "$dst\*" "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-usag
 ### 方式 C：npm pack 后本地安装
 
 ```bash
-npm pack                     # 产出 dsh-usage-wallet-1.0.11.tgz
+npm pack                     # 产出 dsh-usage-wallet-1.0.15.tgz
 ```
 
 然后把它当作本地 tarball 安装进 profile。

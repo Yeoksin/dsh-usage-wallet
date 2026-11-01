@@ -16,7 +16,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `1.0.11`,
+重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `1.0.15`,
 「包含的组件」里是 `dsh-usage-wallet`（而不是 @dougen/...），状态「运行中」。
 
 ## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（1.0.3 修复）
@@ -89,6 +89,23 @@ powershell -ExecutionPolicy Bypass -File .\fix-bom.ps1
 余额与 Token Plan 用量只能读控制台，所以请在同一张卡片的第二格填「控制台 Cookie」。
 
 如果你只想看「这把 Key 能不能用」，那第一格就够了——校验通过会显示 Key 类型与可用模型数量。
+## 怎么抓 MiMo 控制台 Cookie（5 步）
+
+**0.** 浏览器打开 <https://platform.xiaomimimo.com> 并登录，停在「财务 → 账户余额」页。
+
+**1.** 按 **F12** 打开开发者工具。
+
+**2.** 切到 **网络 / Network**，按 **F5 刷新**（不刷新列表是空的），筛选框输入 **api/v1**。
+
+**3.** 点任意一条请求（如 `balance`）。
+
+**4.** 右侧 **标头 / Headers** → **请求标头 / Request Headers** → 找 `cookie:` 那一行 → 整行复制（或右键请求 → 复制 → 复制请求标头）。
+
+**5.** DSH → 设置 → 插件 → 详情页卡片「**② 控制台 Cookie**」→ 粘贴 → 保存。
+
+成功的标志：卡片里出现 `已保存，余额 ¥xx`，侧边栏底部出现金额卡片。
+
+> `1.0.14` 起整份请求头也能粘（只挑已知 cookie）。
 ## 症状：小米 MiMo 显示「登录状态已过期」或填了 Cookie 仍失败
 
 | 提示 | 原因 | 处理 |
