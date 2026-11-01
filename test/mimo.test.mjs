@@ -162,3 +162,19 @@ test('别名：xiaomi / xiaomimimo 归一到一个能力，且只列一次', () 
   assert.equal(ids.filter((id) => id === 'mimo').length, 1);
   assert.equal(ids.includes('xiaomimimo'), false, '别名不该单独出现在能力列表里');
 });
+
+test('粘贴格式宽容：带 "Cookie:" 前缀或整份请求头都能解析', () => {
+  const bare = 'api-platform_serviceToken=abc; userId=123';
+  assert.equal(normalizeMiMoCookie('Cookie: ' + bare), bare);
+  assert.equal(normalizeMiMoCookie('cookie:  ' + bare), bare);
+  const fullHeaders = [
+    'host: platform.xiaomimimo.com',
+    'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    'accept: application/json, text/plain, */*',
+    'cookie: ' + bare,
+    'referer: https://platform.xiaomimimo.com/#/console/balance',
+  ].join('\n');
+  assert.equal(normalizeMiMoCookie(fullHeaders), bare, '整份请求头里只挑已知 cookie');
+  // 缺必需项仍然拒绝（不能把无关内容当成 Cookie 通过）
+  assert.equal(normalizeMiMoCookie('host: platform.xiaomimimo.com\nuser-agent: x'), null);
+});
