@@ -16,7 +16,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 # 2) 完全退出 DSH（托盘也退）再打开
 ```
 
-重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `1.0.15`,
+重启后应看到：详情页标题 `dsh-usage-wallet`、版本 `1.0.16`,
 「包含的组件」里是 `dsh-usage-wallet`（而不是 @dougen/...），状态「运行中」。
 
 ## 症状：插件显示「运行中」，但详情页没有「阿里云 AccessKey」输入框（1.0.3 修复）

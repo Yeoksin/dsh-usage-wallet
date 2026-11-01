@@ -8,8 +8,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { registerHooks } from 'node:module';
 
-import { apply } from '../lib/index.js';
+// `@deepseek-ai/dsh-credentials` 是 DSH 内部包，npm 上装不到；宿主代码只在运行时由 DSH
+// 提供。测试里注入一个等价桩（credentialRef 只是给引用名打个标记），否则在干净的 CI 环境里
+// import ../lib/index.js 会直接 ERR_MODULE_NOT_FOUND（本地能过是因为上级目录恰好残留了这个包）。
+const CREDENTIALS_STUB = `
+export function credentialRef(name) { return { __credentialRef: String(name) }; }
+export default { credentialRef };
+`;
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === '@deepseek-ai/dsh-credentials') {
+      return { url: 'data:text/javascript,' + encodeURIComponent(CREDENTIALS_STUB), shortCircuit: true };
+    }
+    return nextResolve(specifier, context);
+  },
+});
+
+const { apply } = await import('../lib/index.js');
 
 /** BSS 假响应：按 Action 分派，模拟阿里云 RPC 的 JSON 形状。 */
 function makeBssFetch(handler) {

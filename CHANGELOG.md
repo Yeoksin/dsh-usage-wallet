@@ -15,6 +15,7 @@
 | **1.0.8** | 0.17.1 | 改名收尾：路由 `/api/usage-wallet*`、patch id、日志与 console 前缀、DOM 标识、截图文件名、文档。 |
 | **1.0.9** | 0.17.2 | `fix-bom.ps1` 也识别旧包名。 |
 | **1.0.10** | 0.17.3 | `install.ps1` 的说明文案改为「通用余额/用量侧边栏」。 |
+| **1.0.16** | 1.0.15 | 修 CI：`plugin-host.test.mjs` 直接 import 宿主代码时依赖了上级目录里一个残留的 `@deepseek-ai/dsh-credentials`（npm 上并不存在这个包），干净环境会 `ERR_MODULE_NOT_FOUND`。现在与 `host-route.test.mjs` 一致，用 loader hook 注入等价桩，测试自洽。 |
 | **1.0.15** | 1.0.14 | 修：没买 Token Plan 时不再显示一条假的「0% 套餐用量」（详情无 `planCode` 或已过期就不挂 usage）；README 与 TROUBLESHOOTING 补上「怎么抓 MiMo 控制台 Cookie」的完整 5 步教程与故障对照表。 |
 | **1.0.14** | 1.0.13 | 粘贴更宽容：Cookie 框接受 `Cookie: a=1; b=2` 甚至整份请求头（只挑已知 cookie），不必手动删前缀。 |
 | **1.0.13** | 1.0.12 | 修关键 bug：Cookie 值含空格（标准写法 ）被误判为「不可用」，导致 MiMo Cookie 存了也显示未配置；同时 list 模式也按 Cookie 规则判定。 |
