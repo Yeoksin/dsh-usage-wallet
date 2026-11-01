@@ -333,3 +333,18 @@ test('只填 MiMo API Key、缺 Cookie：状态是 key-only（不误报 no-key�
     await server.close();
   }
 });
+
+test('Cookie 含空格（"a=1; b=2"）也算已配置，不被当成不可用', async () => {
+  const { routes, store } = makeCtx({ currentProvider: 'mimo' });
+  store.set('MIMO_COOKIE', 'api-platform_serviceToken=abc; userId=123');
+  const server = await startServer(routes);
+  try {
+    const list = await json(await fetch(`${server.base}/api/usage-wallet/accounts?list=1`));
+    const mimo = list.body.accounts.find((a) => a.multi === 'mimo-cookie');
+    assert.equal(mimo.cookie.configured, true, '含空格的 Cookie 应被认作已配置');
+    // list=1 不联网，状态是 pending（已配置、待查询），不是 no-key/error
+    assert.equal(mimo.status, 'pending');
+  } finally {
+    await server.close();
+  }
+});
